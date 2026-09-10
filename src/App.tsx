@@ -30,6 +30,13 @@ const segmentationBackgroundId = 'lago'
 const SEGMENTATION_WASM_PATH = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.0.1/wasm'
 const COMPOSITE_OUTPUT_WIDTH = 360
 const COMPOSITE_OUTPUT_HEIGHT = 640
+const MASK_FEATHER_PX = 2
+const LIGHT_WRAP_OPACITY = 0.055
+
+type VideoFrameCallbackVideo = HTMLVideoElement & {
+  requestVideoFrameCallback?: (callback: (now: number, metadata: unknown) => void) => number
+  cancelVideoFrameCallback?: (handle: number) => void
+}
 
 function loadImageAsset(src: string) {
   return new Promise<HTMLImageElement>((resolve, reject) => {
@@ -187,8 +194,8 @@ function StationTile({ station, selected, onOpen }: { station: Station; selected
 
 function PhotoStudio({ selectedOverlay, isStationFound, notice, tab, onSelect, onCaptured, onLocked, onTab, onClose, onResult }: { selectedOverlay: string; isStationFound: (stationId: string) => boolean; notice: string | null; tab: string; onSelect: (id: string) => void; onCaptured: (photo: string, filter: string) => void; onLocked: () => void; onTab: (tab: string) => void; onClose: () => void; onResult: () => void }) {
   const options = [{ id: 'la-estacion', name: 'La Estación', image: laEstacion.heroImage }, sunset, permanentStations[0], permanentStations[2], permanentStations[3]]
-  const cameraDebug = new URLSearchParams(window.location.search).get('cameraDebug') === 'true'
-  const segDebug = new URLSearchParams(window.location.search).get('segDebug') === 'true'
+  const cameraDebug = import.meta.env.DEV && new URLSearchParams(window.location.search).get('cameraDebug') === 'true'
+  const segDebug = import.meta.env.DEV && new URLSearchParams(window.location.search).get('segDebug') === 'true'
   const videoRef = useRef<HTMLVideoElement>(null)
   const streamRef = useRef<MediaStream | null>(null)
   const mountedRef = useRef(true)
@@ -204,42 +211,80 @@ function PhotoStudio({ selectedOverlay, isStationFound, notice, tab, onSelect, o
   const personCanvasRef = useRef<HTMLCanvasElement>(null)
   const maskCanvasRef = useRef<HTMLCanvasElement | null>(null)
   const alphaMaskCanvasRef = useRef<HTMLCanvasElement | null>(null)
+  const featherMaskCanvasRef = useRef<HTMLCanvasElement | null>(null)
+  const lightWrapCanvasRef = useRef<HTMLCanvasElement | null>(null)
   const debugVideoCanvasRef = useRef<HTMLCanvasElement>(null)
   const debugMaskCanvasRef = useRef<HTMLCanvasElement>(null)
   const debugCompositeCanvasRef = useRef<HTMLCanvasElement>(null)
   const segmenterRef = useRef<ImageSegmenter | null>(null)
   const segmenterPromiseRef = useRef<Promise<ImageSegmenter> | null>(null)
   const segmentationFrameRef = useRef<number | null>(null)
+  const segmentationFrameModeRef = useRef<'video' | 'raf' | null>(null)
   const segmentingRef = useRef(false)
   const processingRef = useRef(false)
   const processingSessionIdRef = useRef<number | null>(null)
   const lastWebcamTimeRef = useRef(-1)
+  const temporalAlphaRef = useRef<Float32Array | null>(null)
+  const performanceMetricsRef = useRef({ startedAt: 0, cameraFrames: 0, segmentationFrames: 0, inferenceMs: 0 })
   const hasCompositeFrameRef = useRef(false)
   const startSegmentationRef = useRef<() => Promise<void>>(async () => undefined)
   const selectedOverlayRef = useRef(selectedOverlay)
   const backgroundPreloadRef = useRef<Promise<void> | null>(null)
   const lastValidBackgroundIdRef = useRef(segmentationBackgroundId)
   const sessionIdRef = useRef(0)
-  const sunsetDebugKeyRef = useRef('')
   selectedOverlayRef.current = selectedOverlay
 
+  const recordPerformance = (inferenceMs?: number) => {
+    if (!import.meta.env.DEV) return
+    const now = performance.now()
+    const metrics = performanceMetricsRef.current
+    if (!metrics.startedAt) metrics.startedAt = now
+    if (inferenceMs === undefined) metrics.cameraFrames += 1
+    else {
+      metrics.segmentationFrames += 1
+      metrics.inferenceMs += inferenceMs
+    }
+    const elapsed = now - metrics.startedAt
+    if (elapsed < 2000) return
+    console.debug('[PhotoStudio performance]', {
+      cameraFps: Number((metrics.cameraFrames * 1000 / elapsed).toFixed(1)),
+      segmentationFps: Number((metrics.segmentationFrames * 1000 / elapsed).toFixed(1)),
+      averageInferenceMs: metrics.segmentationFrames ? Number((metrics.inferenceMs / metrics.segmentationFrames).toFixed(1)) : 0,
+    })
+    performanceMetricsRef.current = { startedAt: now, cameraFrames: 0, segmentationFrames: 0, inferenceMs: 0 }
+  }
+
+  const scheduleSegmentationFrame = (video: HTMLVideoElement, callback: () => void) => {
+    const frameVideo = video as VideoFrameCallbackVideo
+    if (typeof frameVideo.requestVideoFrameCallback === 'function') {
+      segmentationFrameModeRef.current = 'video'
+      segmentationFrameRef.current = frameVideo.requestVideoFrameCallback(() => callback())
+      return
+    }
+    segmentationFrameModeRef.current = 'raf'
+    segmentationFrameRef.current = window.requestAnimationFrame(callback)
+  }
+
   const cancelSegmentationLoop = () => {
-    if (segmentationFrameRef.current !== null) window.cancelAnimationFrame(segmentationFrameRef.current)
+    const frameVideo = videoRef.current as VideoFrameCallbackVideo | null
+    if (segmentationFrameRef.current !== null) {
+      if (segmentationFrameModeRef.current === 'video' && typeof frameVideo?.cancelVideoFrameCallback === 'function') frameVideo.cancelVideoFrameCallback(segmentationFrameRef.current)
+      else window.cancelAnimationFrame(segmentationFrameRef.current)
+    }
     segmentationFrameRef.current = null
+    segmentationFrameModeRef.current = null
     segmentingRef.current = false
     processingRef.current = false
     processingSessionIdRef.current = null
     lastWebcamTimeRef.current = -1
+    temporalAlphaRef.current = null
+    performanceMetricsRef.current = { startedAt: 0, cameraFrames: 0, segmentationFrames: 0, inferenceMs: 0 }
   }
 
-  const lifecycleDebug = (...args: unknown[]) => {
-    if (import.meta.env.DEV) console.debug('[PhotoStudio]', ...args)
-  }
   const backgroundImagesRef = useRef<Record<string, HTMLImageElement>>({})
   const capturedPersonCanvasRef = useRef<HTMLCanvasElement | null>(null)
 
   const stopCamera = () => {
-    if (cameraDebug) console.debug('[PhotoStudio] stopCamera')
     streamRef.current?.getTracks().forEach((track) => track.stop())
     streamRef.current = null
     if (videoRef.current) videoRef.current.srcObject = null
@@ -281,17 +326,8 @@ function PhotoStudio({ selectedOverlay, isStationFound, notice, tab, onSelect, o
     await video.play()
     if (streamRef.current !== stream || !mountedRef.current || expectedSessionId !== sessionIdRef.current) return
     setDiagnosticRevision((revision) => revision + 1)
-    if (cameraDebug) console.debug('[PhotoStudio] video attached', {
-      streamActive: stream.active,
-      track: stream.getVideoTracks()[0],
-      videoReadyState: video.readyState,
-      videoWidth: video.videoWidth,
-      videoHeight: video.videoHeight,
-      paused: video.paused,
-    })
     if (video.videoWidth > 0 && video.videoHeight > 0 && !video.paused) {
       setCameraState('live')
-      lifecycleDebug(`camera ready #${expectedSessionId}`)
       void startSegmentationRef.current()
     }
   }
@@ -302,7 +338,6 @@ function PhotoStudio({ selectedOverlay, isStationFound, notice, tab, onSelect, o
   stopCameraRef.current = stopCamera
   const setVideoRef = useCallback((node: HTMLVideoElement | null) => {
     videoRef.current = node
-    if (cameraDebug) console.debug('[PhotoStudio] video ref', node ? 'mounted' : 'unmounted')
     if (node && streamRef.current) {
       setCameraState('connecting')
       void attachStreamRef.current(node, streamRef.current).catch((error: unknown) => {
@@ -314,11 +349,9 @@ function PhotoStudio({ selectedOverlay, isStationFound, notice, tab, onSelect, o
   }, [cameraDebug])
 
   const startCamera = async () => {
-    if (cameraDebug) console.debug('[PhotoStudio] startCamera')
     sessionIdRef.current += 1
     const sessionId = sessionIdRef.current
     cancelSegmentationLoop()
-    lifecycleDebug(`session start #${sessionId}`)
     stopCamera()
     setPhotoDataUrl(null)
     setCameraNotice(null)
@@ -333,11 +366,19 @@ function PhotoStudio({ selectedOverlay, isStationFound, notice, tab, onSelect, o
     if (!navigator.mediaDevices?.getUserMedia) {
       setCameraState(cameraDebug ? 'error' : 'fallback')
       setCameraError('getUserMedia is not available')
-      setCameraNotice('No pudimos acceder a la cámara. Podés seguir probando la experiencia.')
+      setCameraNotice('No pudimos acceder a la cámara. Revisá los permisos del navegador e intentá nuevamente.')
       return
     }
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false })
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: 'user',
+          width: { ideal: 640 },
+          height: { ideal: 480 },
+          frameRate: { ideal: 24, max: 24 },
+        },
+        audio: false,
+      })
       if (!mountedRef.current || sessionId !== sessionIdRef.current) {
         stream.getTracks().forEach((track) => track.stop())
         return
@@ -345,25 +386,13 @@ function PhotoStudio({ selectedOverlay, isStationFound, notice, tab, onSelect, o
       streamRef.current = stream
       setPermissionState('granted')
       setCameraState('connecting')
-      if (cameraDebug) {
-        const track = stream.getVideoTracks()[0]
-        console.debug('[PhotoStudio] stream received', {
-          streamActive: stream.active,
-          trackLabel: track?.label,
-          trackEnabled: track?.enabled,
-          trackMuted: track?.muted,
-          trackReadyState: track?.readyState,
-          settings: track?.getSettings(),
-          constraints: track?.getConstraints(),
-        })
-      }
       if (videoRef.current) await attachStreamToVideo(videoRef.current, stream, sessionId)
     } catch (error: unknown) {
       stopCamera()
       setPermissionState(error instanceof DOMException && error.name === 'NotAllowedError' ? 'denied' : 'error')
       setCameraState(cameraDebug ? 'error' : 'fallback')
       setCameraError(error instanceof Error ? error.message : 'Unable to access camera')
-      setCameraNotice('No pudimos acceder a la cámara. Podés seguir probando la experiencia.')
+      setCameraNotice('No pudimos acceder a la cámara. Revisá los permisos del navegador e intentá nuevamente.')
     }
   }
 
@@ -388,9 +417,7 @@ function PhotoStudio({ selectedOverlay, isStationFound, notice, tab, onSelect, o
       backgroundPreloadRef.current = Promise.all(Object.entries(filterBackgrounds).map(async ([filterId, source]) => {
         try {
           backgroundImagesRef.current[filterId] = await loadImageAsset(source)
-        } catch (error) {
-          console.warn(`[PhotoStudio] Unable to preload background ${filterId}`, error)
-        }
+        } catch { }
       })).then(() => undefined)
     }
     return backgroundPreloadRef.current
@@ -426,8 +453,12 @@ function PhotoStudio({ selectedOverlay, isStationFound, notice, tab, onSelect, o
     }
     const personCanvas = personCanvasRef.current || document.createElement('canvas')
     const alphaMaskCanvas = alphaMaskCanvasRef.current || document.createElement('canvas')
+    const featherMaskCanvas = featherMaskCanvasRef.current || document.createElement('canvas')
+    const lightWrapCanvas = lightWrapCanvasRef.current || document.createElement('canvas')
     personCanvasRef.current = personCanvas
     alphaMaskCanvasRef.current = alphaMaskCanvas
+    featherMaskCanvasRef.current = featherMaskCanvas
+    lightWrapCanvasRef.current = lightWrapCanvas
     if (personCanvas.width !== width || personCanvas.height !== height) {
       personCanvas.width = width
       personCanvas.height = height
@@ -436,10 +467,20 @@ function PhotoStudio({ selectedOverlay, isStationFound, notice, tab, onSelect, o
       alphaMaskCanvas.width = width
       alphaMaskCanvas.height = height
     }
+    if (featherMaskCanvas.width !== width || featherMaskCanvas.height !== height) {
+      featherMaskCanvas.width = width
+      featherMaskCanvas.height = height
+    }
+    if (lightWrapCanvas.width !== width || lightWrapCanvas.height !== height) {
+      lightWrapCanvas.width = width
+      lightWrapCanvas.height = height
+    }
     const personContext = personCanvas.getContext('2d')
     const alphaMaskContext = alphaMaskCanvas.getContext('2d')
+    const featherMaskContext = featherMaskCanvas.getContext('2d')
+    const lightWrapContext = lightWrapCanvas.getContext('2d')
     const outputContext = canvas.getContext('2d')
-    if (!personContext || !alphaMaskContext || !outputContext) throw new Error('Unable to create segmentation canvas contexts')
+    if (!personContext || !alphaMaskContext || !featherMaskContext || !lightWrapContext || !outputContext) throw new Error('Unable to create segmentation canvas contexts')
     const maskValues = mask.getAsFloat32Array()
     const maskCanvas = maskCanvasRef.current || document.createElement('canvas')
     maskCanvasRef.current = maskCanvas
@@ -460,30 +501,50 @@ function PhotoStudio({ selectedOverlay, isStationFound, notice, tab, onSelect, o
     }
     maskContext.putImageData(visibleMask, 0, 0)
     const alphaMask = alphaMaskContext.createImageData(width, height)
+    const temporalAlpha = temporalAlphaRef.current && temporalAlphaRef.current.length === width * height
+      ? temporalAlphaRef.current
+      : new Float32Array(width * height)
+    temporalAlphaRef.current = temporalAlpha
     const videoCover = getCoverPlacement(video.videoWidth, video.videoHeight, width, height)
     for (let y = 0; y < height; y += 1) {
       const sourceY = (y - videoCover.offsetY) / videoCover.scale
       const maskY = Math.min(mask.height - 1, Math.max(0, Math.floor((sourceY / video.videoHeight) * mask.height)))
       for (let x = 0; x < width; x += 1) {
         const sourceX = (x - videoCover.offsetX) / videoCover.scale
+        const outputIndex = y * width + x
         const pixel = (y * width + x) * 4
         alphaMask.data[pixel] = 255
         alphaMask.data[pixel + 1] = 255
         alphaMask.data[pixel + 2] = 255
         if (sourceX < 0 || sourceX >= video.videoWidth || sourceY < 0 || sourceY >= video.videoHeight) {
+          temporalAlpha[outputIndex] = 0
           alphaMask.data[pixel + 3] = 0
         } else {
           const maskX = Math.min(mask.width - 1, Math.max(0, Math.floor((sourceX / video.videoWidth) * mask.width)))
           const maskIndex = maskY * mask.width + maskX
-          alphaMask.data[pixel + 3] = Math.max(0, Math.min(1, maskValues[maskIndex])) * 255
+          const currentAlpha = Math.max(0, Math.min(1, maskValues[maskIndex])) * 255
+          const previousAlpha = temporalAlpha[outputIndex]
+          let smoothedAlpha = currentAlpha
+          if (previousAlpha > 0 && currentAlpha < 4) smoothedAlpha = previousAlpha * .12
+          else if (previousAlpha > 0) {
+            const delta = currentAlpha - previousAlpha
+            const currentWeight = delta > 72 ? .82 : delta < -72 ? .9 : .34
+            smoothedAlpha = currentAlpha * currentWeight + previousAlpha * (1 - currentWeight)
+          }
+          temporalAlpha[outputIndex] = smoothedAlpha
+          alphaMask.data[pixel + 3] = smoothedAlpha
         }
       }
     }
     alphaMaskContext.putImageData(alphaMask, 0, 0)
+    featherMaskContext.clearRect(0, 0, width, height)
+    featherMaskContext.filter = `blur(${MASK_FEATHER_PX}px)`
+    featherMaskContext.drawImage(alphaMaskCanvas, 0, 0, width, height)
+    featherMaskContext.filter = 'none'
     personContext.clearRect(0, 0, width, height)
     drawCover(personContext, video, width, height, video.videoWidth, video.videoHeight)
     personContext.globalCompositeOperation = 'destination-in'
-    personContext.drawImage(alphaMaskCanvas, 0, 0, width, height)
+    personContext.drawImage(featherMaskCanvas, 0, 0, width, height)
     personContext.globalCompositeOperation = 'source-over'
     outputContext.clearRect(0, 0, width, height)
     const requestedBackgroundId = selectedOverlayRef.current
@@ -493,21 +554,17 @@ function PhotoStudio({ selectedOverlay, isStationFound, notice, tab, onSelect, o
       || Object.values(backgroundImagesRef.current)[0]
     if (!background) throw new Error('Lago background is not loaded')
     if (backgroundImagesRef.current[requestedBackgroundId] === background) lastValidBackgroundIdRef.current = requestedBackgroundId
-    if (import.meta.env.DEV && requestedBackgroundId === 'sunset-26') {
-      const debugKey = `${video.videoWidth}x${video.videoHeight}|${mask.width}x${mask.height}|${personCanvas.width}x${personCanvas.height}|${canvas.width}x${canvas.height}|${background.src}|${background.naturalWidth}x${background.naturalHeight}`
-      if (sunsetDebugKeyRef.current !== debugKey) {
-        sunsetDebugKeyRef.current = debugKey
-        console.debug('[Sunset camera background]', background.src, background.naturalWidth, background.naturalHeight)
-        console.debug('[PhotoStudio dimensions]', {
-          VIDEO: `${video.videoWidth}x${video.videoHeight}`,
-          MASK: `${mask.width}x${mask.height}`,
-          'PERSON CANVAS': `${personCanvas.width}x${personCanvas.height}`,
-          'OUTPUT CANVAS': `${canvas.width}x${canvas.height}`,
-          'SUNSET IMAGE': `${background.naturalWidth}x${background.naturalHeight}`,
-        })
-      }
-    }
     drawCover(outputContext, background, width, height, background.naturalWidth, background.naturalHeight)
+    lightWrapContext.clearRect(0, 0, width, height)
+    drawCover(lightWrapContext, background, width, height, background.naturalWidth, background.naturalHeight)
+    lightWrapContext.globalCompositeOperation = 'destination-in'
+    lightWrapContext.drawImage(featherMaskCanvas, 0, 0, width, height)
+    lightWrapContext.globalCompositeOperation = 'destination-out'
+    lightWrapContext.drawImage(alphaMaskCanvas, 0, 0, width, height)
+    lightWrapContext.globalCompositeOperation = 'source-over'
+    outputContext.globalAlpha = LIGHT_WRAP_OPACITY
+    outputContext.drawImage(lightWrapCanvas, 0, 0, width, height)
+    outputContext.globalAlpha = 1
     outputContext.drawImage(personCanvas, 0, 0, width, height)
     if (segDebug) {
       const debugVideoCanvas = debugVideoCanvasRef.current
@@ -556,17 +613,19 @@ function PhotoStudio({ selectedOverlay, isStationFound, notice, tab, onSelect, o
       segmenterRef.current = segmenter
       await preloadBackgrounds()
       if (!mountedRef.current || sessionId !== sessionIdRef.current) return
-      lifecycleDebug(`segmenter ready #${sessionId}`)
       const renderFrame = () => {
         if (!mountedRef.current || sessionId !== sessionIdRef.current || !videoRef.current || !segmenterRef.current) return
-        if (video.currentTime === lastWebcamTimeRef.current || processingRef.current) {
-          segmentationFrameRef.current = window.requestAnimationFrame(renderFrame)
+        if (segmentationFrameModeRef.current !== 'video' && video.currentTime === lastWebcamTimeRef.current) {
+          scheduleSegmentationFrame(video, renderFrame)
           return
         }
         lastWebcamTimeRef.current = video.currentTime
+        recordPerformance()
+        if (processingRef.current) return
         processingRef.current = true
         processingSessionIdRef.current = sessionId
-        segmenterRef.current.segmentForVideo(video, performance.now(), (result) => {
+        const inferenceStartedAt = performance.now()
+        segmenterRef.current.segmentForVideo(video, inferenceStartedAt, (result) => {
           if (sessionId !== sessionIdRef.current) {
             if (processingSessionIdRef.current === sessionId) {
               processingRef.current = false
@@ -574,32 +633,31 @@ function PhotoStudio({ selectedOverlay, isStationFound, notice, tab, onSelect, o
             }
             return
           }
+          recordPerformance(performance.now() - inferenceStartedAt)
           try {
             const didDraw = drawSegmentedFrame(result, video)
             if (didDraw && !hasCompositeFrameRef.current) {
               hasCompositeFrameRef.current = true
               setHasCompositeFrame(true)
               setSegmentationState('live')
-              lifecycleDebug(`first composite #${sessionId}`)
             }
           } catch (error: unknown) {
             setSegmentationState('fallback')
-            setCameraNotice(`Segmentación no disponible: ${error instanceof Error ? error.message : 'error del modelo'}`)
+            setCameraNotice('No pudimos preparar la cámara. Revisá los permisos del navegador e intentá nuevamente.')
             segmentingRef.current = false
           } finally {
             if (sessionId !== sessionIdRef.current) return
             processingRef.current = false
             processingSessionIdRef.current = null
-            if (segmentingRef.current) segmentationFrameRef.current = window.requestAnimationFrame(renderFrame)
+            if (segmentingRef.current) scheduleSegmentationFrame(video, renderFrame)
           }
         })
       }
-      lifecycleDebug(`loop started #${sessionId}`)
       renderFrame()
     } catch (error: unknown) {
       if (sessionId !== sessionIdRef.current) return
       setSegmentationState('fallback')
-      setCameraNotice(`Segmentación no disponible: ${error instanceof Error ? error.message : 'error del modelo'}`)
+      setCameraNotice('No pudimos preparar la cámara. Revisá los permisos del navegador e intentá nuevamente.')
       segmentingRef.current = false
     }
   }
@@ -647,11 +705,8 @@ function PhotoStudio({ selectedOverlay, isStationFound, notice, tab, onSelect, o
 
   useEffect(() => {
     mountedRef.current = true
-    if (cameraDebug) console.debug('[PhotoStudio] effect mount')
     void startCamera()
     return () => {
-      if (cameraDebug) console.debug('[PhotoStudio] effect cleanup')
-      lifecycleDebug(`session cleanup #${sessionIdRef.current}`)
       mountedRef.current = false
       stopSegmentation()
       segmenterRef.current?.close()
@@ -669,6 +724,7 @@ function PhotoStudio({ selectedOverlay, isStationFound, notice, tab, onSelect, o
   const showLiveCamera = cameraState !== 'fallback' && cameraState !== 'captured' && cameraState !== 'error'
   const mediaSource = photoDataUrl || laEstacion.cameraImage
   const visibleNotice = cameraNotice || notice
+  const isSunset = selectedOverlay === sunset.id
   const selectFilter = (filterId: string) => {
     if (cameraState === 'captured' || photoDataUrl) return
     onSelect(filterId)
@@ -680,7 +736,7 @@ function PhotoStudio({ selectedOverlay, isStationFound, notice, tab, onSelect, o
   const debugVideo = videoRef.current
   const diagnostics = <pre className="camera-debug-diagnostics">permission: {permissionState}{'\n'}stream.active: {String(debugStream?.active ?? false)}{'\n'}track.readyState: {debugTrack?.readyState ?? 'none'}{'\n'}track.label: {debugTrack?.label || 'none'}{'\n'}video.readyState: {debugVideo?.readyState ?? 0}{'\n'}video.paused: {String(debugVideo?.paused ?? true)}{'\n'}video.videoWidth: {debugVideo?.videoWidth ?? 0}{'\n'}video.videoHeight: {debugVideo?.videoHeight ?? 0}{'\n'}state: {cameraState}{cameraError ? `\nerror: ${cameraError}` : ''}</pre>
   if (cameraDebug) return <section className="phone-screen studio-screen camera-debug-screen"><header className="floating-header"><button className="icon-button" onClick={handleClose}><X size={21} /></button><span>Camera debug</span><span>{cameraState}</span></header><div className="camera-debug-media">{videoElement}</div>{diagnostics}</section>
-  return <section className={`phone-screen studio-screen studio-filter-${selectedOverlay} ${hasCompositeFrame ? 'segmentation-live' : ''}`}><div className="studio-media">{showLiveCamera ? videoElement : <img className="studio-fallback-image" src={mediaSource} alt="" />}<canvas ref={compositeCanvasRef} className="studio-composite-canvas" aria-label="Vista compuesta de cámara" /></div><div className="photo-shade medium" /><header className="floating-header"><button className="icon-button" onClick={handleClose}><X size={21} /></button><Sparkles size={18} /></header><div className="studio-copy"><h2>Creá tu noche</h2><p>Usá los elementos de tus estaciones.</p></div><div key={selectedOverlay} className={`studio-overlay overlay-${selectedOverlay}`}><span>Same<br />people<br />different<br />skies +</span></div>{visibleNotice && <p className="studio-feedback">{visibleNotice}</p>}<div className="studio-options">{options.map((item) => { const locked = item.id === sunset.id && !isStationFound(item.id); return <button className={`${selectedOverlay === item.id ? 'active ' : ''}${locked ? 'locked-option' : ''}`} key={item.id} onClick={() => locked ? onLocked() : selectFilter(item.id)} aria-disabled={locked}><img src={item.image} alt={item.name} /><small>{item.name}</small></button> })}</div><div className="studio-controls"><button onClick={startCamera} aria-label="Repetir foto"><ImageIcon size={22} /><small>Foto</small></button><button className="shutter" onClick={capturePhoto} aria-label="Tomar foto" /><button onClick={() => photoDataUrl && onResult()} aria-label="Publicar foto"><MoreHorizontal size={22} /><small>Post</small></button></div><div className="studio-tabs">{['foto', 'story', 'post'].map((item) => <button className={tab === item ? 'active' : ''} onClick={() => onTab(item)} key={item}>{item}</button>)}</div>{segDebug && <div className="seg-debug-panel"><figure><canvas ref={debugVideoCanvasRef} /><figcaption>VIDEO ORIGINAL</figcaption></figure><figure><canvas ref={debugMaskCanvasRef} /><figcaption>PERSON CUTOUT</figcaption></figure><figure><canvas ref={debugCompositeCanvasRef} /><figcaption>COMPOSITE FINAL</figcaption></figure></div>}</section>
+  return <section className={`phone-screen studio-screen studio-filter-${selectedOverlay} ${hasCompositeFrame ? 'segmentation-live' : ''}`}><div className="studio-media">{showLiveCamera ? videoElement : <img className="studio-fallback-image" src={mediaSource} alt="" />}<canvas ref={compositeCanvasRef} className="studio-composite-canvas" aria-label="Vista compuesta de cámara" /></div><div className="photo-shade medium" /><header className="floating-header"><button className="icon-button" onClick={handleClose}><X size={21} /></button><Sparkles size={18} /></header>{!isSunset && <div className="studio-copy"><h2>Creá tu noche</h2><p>Usá los elementos de tus estaciones.</p></div>}{!isSunset && <div key={selectedOverlay} className={`studio-overlay overlay-${selectedOverlay}`}><span>Same<br />people<br />different<br />skies +</span></div>}{visibleNotice && <p className="studio-feedback">{visibleNotice}</p>}<div className="studio-options">{options.map((item) => { const locked = item.id === sunset.id && !isStationFound(item.id); return <button className={`${selectedOverlay === item.id ? 'active ' : ''}${locked ? 'locked-option' : ''}`} key={item.id} onClick={() => locked ? onLocked() : selectFilter(item.id)} aria-disabled={locked}><img src={item.image} alt={item.name} /><small>{item.name}</small></button> })}</div><div className="studio-controls"><button onClick={startCamera} aria-label="Repetir foto"><ImageIcon size={22} /><small>Foto</small></button><button className="shutter" onClick={capturePhoto} aria-label="Tomar foto" /><button onClick={() => photoDataUrl && onResult()} aria-label="Publicar foto"><MoreHorizontal size={22} /><small>Post</small></button></div><div className="studio-tabs">{['foto', 'story', 'post'].map((item) => <button className={tab === item ? 'active' : ''} onClick={() => onTab(item)} key={item}>{item}</button>)}</div>{segDebug && <div className="seg-debug-panel"><figure><canvas ref={debugVideoCanvasRef} /><figcaption>VIDEO ORIGINAL</figcaption></figure><figure><canvas ref={debugMaskCanvasRef} /><figcaption>PERSON CUTOUT</figcaption></figure><figure><canvas ref={debugCompositeCanvasRef} /><figcaption>COMPOSITE FINAL</figcaption></figure></div>}</section>
 }
 
 function ShareResult({ photoSrc, filterId, onClose, onEdit }: { photoSrc: string; filterId: string; onClose: () => void; onEdit: () => void }) {
