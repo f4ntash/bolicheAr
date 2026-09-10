@@ -1,0 +1,4 @@
+node_modules/
+dist/
+.superdesign/tmp/
+.superdesign/resume.json
