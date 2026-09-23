@@ -1,11 +1,13 @@
 import { laEstacionRuntime } from '../config/events/laEstacion'
 import { laFabricaRuntime } from '../config/events/laFabrica'
+import { dahausRuntime } from '../config/events/dahaus'
 import type { ExperienceRuntime } from '../types'
 
 const EXPERIENCE_DEFAULT = 'la-estacion'
 const EXPERIENCE_RUNTIMES: Record<string, ExperienceRuntime> = {
   'la-estacion': laEstacionRuntime,
   'la-fabrica': laFabricaRuntime,
+  dahaus: dahausRuntime,
 }
 
 export function resolveExperience(): ExperienceRuntime {

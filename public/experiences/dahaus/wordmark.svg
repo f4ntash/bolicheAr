@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 160" role="img" aria-labelledby="title desc">
+  <title id="title">dahaus!</title>
+  <desc id="desc">Wordmark tipográfico temporal para la demo conceptual de Dahaus.</desc>
+  <rect width="600" height="160" fill="none"/>
+  <text x="18" y="120" fill="#f5f3ee" font-family="Georgia, 'Times New Roman', serif" font-size="112" font-style="italic" letter-spacing="-7">dahaus!</text>
+</svg>

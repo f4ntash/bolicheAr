@@ -4,6 +4,7 @@ import react from '@vitejs/plugin-react'
 const EXPERIENCE_BASES: Record<string, string> = {
   'la-estacion': '/la-estacion/',
   'la-fabrica': '/la-fabrica/',
+  dahaus: '/dahaus/',
 }
 
 export default defineConfig(({ mode }) => {
@@ -17,6 +18,39 @@ export default defineConfig(({ mode }) => {
 
   return {
     base,
-    plugins: [react()],
+    plugins: [
+      {
+        name: 'experience-base-redirect',
+        configureServer(server) {
+          server.middlewares.use((request, response, next) => {
+            const pathname = (request as { url?: string }).url?.split('?')[0]
+            const slashlessBase = base.slice(0, -1)
+            if (pathname === slashlessBase) {
+              response.statusCode = 302
+              response.setHeader('Location', base)
+              response.end()
+              return
+            }
+
+            next()
+          })
+        },
+        configurePreviewServer(server) {
+          server.middlewares.use((request, response, next) => {
+            const pathname = (request as { url?: string }).url?.split('?')[0]
+            const slashlessBase = base.slice(0, -1)
+            if (pathname === slashlessBase) {
+              response.statusCode = 302
+              response.setHeader('Location', base)
+              response.end()
+              return
+            }
+
+            next()
+          })
+        },
+      },
+      react(),
+    ],
   }
 })
