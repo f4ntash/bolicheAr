@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" aria-labelledby="title desc">
+  <title id="title">LA FABRICA — temporary wordmark</title>
+  <desc id="desc">Temporary typographic mark while the definitive La Fábrica logo is pending approval.</desc>
+  <rect x="3" y="3" width="94" height="94" fill="#0d0d0c" stroke="#ee5b35" stroke-width="2"/>
+  <path d="M16 20h68M16 80h68" stroke="#f4f0e9" stroke-width="1" opacity=".45"/>
+  <text x="16" y="48" fill="#f4f0e9" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="700" letter-spacing="2">LA</text>
+  <text x="16" y="68" fill="#f4f0e9" font-family="Arial, Helvetica, sans-serif" font-size="14" font-weight="700" letter-spacing="1.2">FABRICA</text>
+  <text x="84" y="91" text-anchor="end" fill="#ee5b35" font-family="Arial, Helvetica, sans-serif" font-size="5" letter-spacing="1">DEMO</text>
+</svg>

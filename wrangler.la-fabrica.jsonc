@@ -1,0 +1,23 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "corsteno-la-fabrica",
+  "main": "./worker.la-fabrica.ts",
+  "compatibility_date": "2026-09-21",
+  "workers_dev": true,
+  "routes": [
+    {
+      "pattern": "corsteno.com/la-fabrica",
+      "zone_name": "corsteno.com"
+    },
+    {
+      "pattern": "corsteno.com/la-fabrica/*",
+      "zone_name": "corsteno.com"
+    }
+  ],
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/la-fabrica/*"]
+  }
+}

@@ -1,16 +1,15 @@
 import { useEffect, useRef, useState } from 'react'
 import { FilesetResolver, ImageSegmenter } from '@mediapipe/tasks-vision'
-import { laEstacion } from './config/events/laEstacion'
+import type { ExperienceRuntime } from './types'
+import { assetUrl } from './utils/assets'
 
-const MODEL_PATH = '/models/selfie_segmenter.tflite'
+const MODEL_PATH = assetUrl('models/selfie_segmenter.tflite')
 const WASM_PATH = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.0.1/wasm'
-const lagoImagePath = laEstacion.stations.find((station) => station.id === 'lago')?.image || '/demo/lago-sunset.png'
-
-function loadImage(src: string) {
+function loadImage(src: string, label: string) {
   return new Promise<HTMLImageElement>((resolve, reject) => {
     const image = new Image()
     image.onload = () => resolve(image)
-    image.onerror = () => reject(new Error(`Unable to load Lago background: ${src}`))
+    image.onerror = () => reject(new Error(`Unable to load ${label} background: ${src}`))
     image.src = src
   })
 }
@@ -25,7 +24,10 @@ function drawCover(context: CanvasRenderingContext2D, image: CanvasImageSource, 
 type CameraState = 'waiting' | 'live' | 'error'
 type MediaPipeState = 'loading' | 'ready' | 'error'
 
-export default function VirtualBackgroundTest() {
+export default function VirtualBackgroundTest({ experience }: { experience: ExperienceRuntime }) {
+  const backgroundStation = experience.stationById[experience.photoStudio.segmentationBackgroundId]
+  const backgroundImagePath = backgroundStation?.image || experience.config.eventImage
+  const backgroundName = backgroundStation?.name || 'Background'
   const videoRef = useRef<HTMLVideoElement>(null)
   const maskCanvasRef = useRef<HTMLCanvasElement>(null)
   const resultCanvasRef = useRef<HTMLCanvasElement>(null)
@@ -171,7 +173,7 @@ export default function VirtualBackgroundTest() {
         await video.play()
         setCameraState('live')
         setVideoSize(`${video.videoWidth} × ${video.videoHeight}`)
-        const backgroundImage = await loadImage(lagoImagePath)
+        const backgroundImage = await loadImage(backgroundImagePath, backgroundName)
         const segmenter = await createSegmenter()
         if (disposed) return
         segmenterRef.current = segmenter
@@ -251,10 +253,10 @@ export default function VirtualBackgroundTest() {
 
   const statusColor = mediaPipeState === 'ready' ? '#77d18b' : mediaPipeState === 'error' ? '#ff8d8d' : '#f2c879'
   return <main style={{ minHeight: '100svh', padding: 18, background: '#111820', color: '#f6f2eb', fontFamily: 'Arial, sans-serif' }}>
-    <h1 style={{ margin: '0 0 12px', fontSize: 20 }}>Virtual Background Test · Lago</h1>
+    <h1 style={{ margin: '0 0 12px', fontSize: 20 }}>Virtual Background Test · {backgroundName}</h1>
     <section style={{ marginBottom: 14 }}><strong style={{ display: 'block', marginBottom: 6, fontSize: 11 }}>1. SOURCE VIDEO</strong><video ref={videoRef} autoPlay muted playsInline style={{ display: 'block', width: '100%', maxWidth: 420, background: '#000' }} /></section>
     <section style={{ marginBottom: 14 }}><strong style={{ display: 'block', marginBottom: 6, fontSize: 11 }}>2. STATUS</strong><pre style={{ margin: 0, padding: 10, background: '#071016', color: statusColor, fontSize: 11, lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>{`Camera: ${cameraState.toUpperCase()}\nMediaPipe: ${mediaPipeState.toUpperCase()}\nVideo: ${videoSize}\nMask: ${maskSize}\nFPS: ${fps}\nLabels: ${JSON.stringify(labels)}\nPerson mask: confidenceMasks[0]\nconfidenceMasks.length: ${confidenceMaskCount}\nmin confidence / max confidence: ${confidenceRange}\nERROR: ${error || 'none'}`}</pre></section>
     <section style={{ marginBottom: 14 }}><strong style={{ display: 'block', marginBottom: 6, fontSize: 11 }}>3. PERSON MASK · WHITE = PERSON</strong><canvas ref={maskCanvasRef} style={{ display: 'block', width: '100%', maxWidth: 640, background: '#000' }} /></section>
-    <section><strong style={{ display: 'block', marginBottom: 6, fontSize: 11 }}>4. FINAL COMPOSITE · LAGO + PERSON</strong><canvas ref={resultCanvasRef} style={{ display: 'block', width: '100%', maxWidth: 640, background: '#000' }} /></section>
+    <section><strong style={{ display: 'block', marginBottom: 6, fontSize: 11 }}>4. FINAL COMPOSITE · {backgroundName.toUpperCase()} + PERSON</strong><canvas ref={resultCanvasRef} style={{ display: 'block', width: '100%', maxWidth: 640, background: '#000' }} /></section>
   </main>
 }
