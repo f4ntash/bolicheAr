@@ -65,6 +65,10 @@ export type ExperienceContent = {
     startLabel: string
     demoNoteTitle: string
     demoNote: string
+    demoDisclosureTitle?: string
+    demoDisclosureBody?: string
+    demoDisclosureNote?: string
+    secondaryStartLabel?: string
   }
   discover: {
     title: string
@@ -90,6 +94,7 @@ export type ExperienceContent = {
     explorationTitle: string
     explorationRemaining: string
     explorationComplete: string
+    explorationIntro?: string
   }
   detail: {
     page: string
@@ -167,7 +172,7 @@ export type ExperienceConfig = {
   eventDate: string
   location: string
   upcomingEvents: { name: string; date: string; image: string }[]
-  passportHistory: { stationId: string; name: string; date: string; image: string }[]
+  passportHistory: { stationId: string; name: string; date: string; image: string; requiresUnlock?: boolean; requiredExplorationCount?: number }[]
   passportTotals: { nights: number; stations: number; specials: number }
   discovery?: {
     allowDemoTapUnlock?: boolean

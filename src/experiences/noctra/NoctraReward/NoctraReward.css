@@ -1,0 +1,34 @@
+.noctra-reward { isolation: isolate; display: flex; min-height: 100dvh; flex-direction: column; overflow: hidden; background: #0a0a0c; }
+.noctra-reward__art, .noctra-reward__glow { position: absolute; z-index: -2; inset: 0; pointer-events: none; }
+.noctra-reward__art { background-position: center; background-size: cover; filter: grayscale(.45); opacity: .22; }
+.noctra-reward__glow { z-index: -1; background: linear-gradient(180deg, rgba(9,9,11,.32), rgba(9,9,11,.39) 38%, rgba(9,9,11,.96) 100%), radial-gradient(ellipse at 50% 48%, rgba(191,142,105,.19), transparent 41%); }
+.noctra-reward.is-locked .noctra-reward__glow { background: linear-gradient(180deg, rgba(9,9,11,.58), rgba(9,9,11,.58) 40%, rgba(9,9,11,.97) 100%), radial-gradient(ellipse at 50% 48%, rgba(99,91,95,.1), transparent 40%); }
+.noctra-reward__content { display: flex; width: min(100%, 760px); margin: auto; padding: 43px 24px 48px; align-items: center; flex-direction: column; text-align: center; }
+.noctra-reward__content > .noctra-eyebrow { justify-content: center; }
+.noctra-reward__badge { position: relative; display: grid; width: 82px; aspect-ratio: 1; margin: 10px 0 17px; place-items: center; border: 1px solid rgba(233,203,177,.45); border-radius: 50%; color: #e9c5a8; box-shadow: 0 0 38px rgba(195,132,97,.11), inset 0 0 27px rgba(195,132,97,.08); }
+.noctra-reward__badge::before, .noctra-reward__badge::after { position: absolute; border: 1px solid rgba(233,203,177,.24); border-radius: 50%; content: ''; }
+.noctra-reward__badge::before { inset: 8px; }.noctra-reward__badge::after { inset: -8px; border-style: dashed; border-color: rgba(233,203,177,.24); }
+.noctra-reward__badge > span { position: absolute; right: -3px; bottom: 3px; display: grid; width: 25px; height: 25px; place-items: center; border: 1px solid #181519; border-radius: 50%; background: #e66b50; color: #111114; }
+.noctra-reward.is-locked .noctra-reward__badge { filter: grayscale(.8); opacity: .6; }
+.noctra-reward__content h1 { margin: 0; font-family: Georgia, 'Times New Roman', serif; font-size: clamp(46px, 12vw, 76px); font-weight: 400; letter-spacing: -.06em; line-height: .94; }
+.noctra-reward__content > p { max-width: 350px; margin: 11px 0 19px; color: rgba(243,238,231,.7); font-size: 11px; line-height: 1.45; }
+.noctra-reward__pass { position: relative; display: flex; width: min(100%, 390px); min-height: 114px; margin-bottom: 17px; padding: 13px 15px; align-items: flex-start; flex-direction: column; gap: 7px; overflow: hidden; border: 1px solid rgba(234,202,176,.39); background: linear-gradient(115deg, rgba(68,51,48,.74), rgba(31,27,30,.88)); text-align: left; }
+.noctra-reward__pass-top { display: flex; width: 100%; justify-content: space-between; color: rgba(243,238,231,.58); font-size: 6px; letter-spacing: .12em; }
+.noctra-reward__pass strong { color: #f1dfd2; font-family: Georgia, 'Times New Roman', serif; font-size: 25px; font-weight: 400; letter-spacing: .03em; }
+.noctra-reward__pass > span { color: rgba(243,238,231,.64); font-size: 8px; letter-spacing: .06em; }
+.noctra-reward__barcode { position: absolute; right: 16px; bottom: 16px; width: 48px; height: 31px; opacity: .45; background: repeating-linear-gradient(90deg, #f3eee7 0 1px, transparent 1px 3px, #f3eee7 3px 5px, transparent 5px 7px); }
+.noctra-reward__content .noctra-primary-action, .noctra-reward__content .noctra-secondary-action { width: min(100%, 390px); }
+.noctra-reward__disclaimer { margin-top: 11px; color: rgba(243,238,231,.42); font-size: 7px; letter-spacing: .09em; }
+@media (min-width: 720px) { .noctra-reward__content h1 { font-size: 94px; }.noctra-reward__content > p { font-size: 13px; }.noctra-reward__badge { width: 94px; margin-top: 20px; } }
+.noctra-reward.is-unlocked .noctra-reward__art { filter: saturate(.83); opacity: .54; animation: noctra-backstage-breathe 12s ease-in-out infinite alternate; }
+.noctra-reward.is-unlocked .noctra-reward__glow { background: linear-gradient(180deg,rgba(9,9,11,.18),rgba(9,9,11,.19) 36%,rgba(9,9,11,.94) 100%),radial-gradient(ellipse at 50% 44%,rgba(231,165,123,.36),transparent 46%); animation: noctra-backstage-light 4s ease-in-out infinite alternate; }
+.noctra-reward.is-unlocked .noctra-reward__content { animation: noctra-backstage-enter 900ms cubic-bezier(.2,.7,.2,1) both; }
+.noctra-reward__content h1 em { color: #e9c5a8; font-weight: 400; }
+.noctra-reward__pass { border-color: rgba(234,202,176,.26); background: linear-gradient(115deg,rgba(68,51,48,.53),rgba(31,27,30,.64)); backdrop-filter: blur(10px); }
+.noctra-reward__pass strong { font-size: 21px; }
+.noctra-reward__content .noctra-primary-action { width: auto; min-width: min(100%,390px); border: 0; border-bottom: 1px solid rgba(243,238,231,.72); border-radius: 0; background: rgba(9,9,11,.34); color: #f3eee7; backdrop-filter: blur(9px); }
+.noctra-reward__content .noctra-primary-action svg:first-child { color: #e6a486; }
+@keyframes noctra-backstage-breathe { from { transform: scale(1.02); } to { transform: scale(1.09); } }
+@keyframes noctra-backstage-light { from { filter: brightness(.92); } to { filter: brightness(1.16); } }
+@keyframes noctra-backstage-enter { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+@media (prefers-reduced-motion: reduce) { .noctra-reward.is-unlocked .noctra-reward__art,.noctra-reward.is-unlocked .noctra-reward__glow,.noctra-reward.is-unlocked .noctra-reward__content { animation: none; } }

@@ -1,15 +1,18 @@
-import { Fragment, createContext, useCallback, useContext, useEffect, useRef, useState, type CSSProperties } from 'react'
+import { Fragment, Suspense, createContext, lazy, useCallback, useContext, useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { ArrowLeft, ArrowRight, Camera, CalendarDays, Grid2X2, Image as ImageIcon, Info, Menu as MenuIcon, MoreHorizontal, ScanLine, Share2, Sparkles, Ticket, X } from 'lucide-react'
-import { BrowserQRCodeReader, type IScannerControls } from '@zxing/browser'
-import { FilesetResolver, ImageSegmenter } from '@mediapipe/tasks-vision'
+import type { IScannerControls } from '@zxing/browser'
+import type { ImageSegmenter } from '@mediapipe/tasks-vision'
 import type { ExperienceRuntime, Station } from './types'
-import VirtualBackgroundTest from './VirtualBackgroundTest'
+import NoctraReward from './experiences/noctra/NoctraReward/NoctraReward'
+import NoctraSponsorActivation from './experiences/noctra/NoctraSponsorActivation/NoctraSponsorActivation'
+import './experiences/noctra/NoctraTheme/NoctraTheme.css'
+const VirtualBackgroundTest = lazy(() => import('./VirtualBackgroundTest'))
 import { parseStationQr } from './utils/stationQr'
 import { assetUrl } from './utils/assets'
-import { analytics } from './utils/analytics'
+import type { AnalyticsEventName } from './utils/analytics'
 import { loadExperienceProgress, resetExperienceProgress, saveExperienceProgress, type ExperienceProgress } from './utils/experienceStorage'
 
-type View = 'home' | 'discover' | 'unlocked' | 'secret-reveal' | 'stations' | 'studio' | 'share' | 'detail' | 'passport' | 'upcoming' | 'menu'
+type View = 'home' | 'discover' | 'unlocked' | 'secret-reveal' | 'stations' | 'studio' | 'share' | 'detail' | 'passport' | 'upcoming' | 'menu' | 'sponsor' | 'reward'
 
 const ExperienceContext = createContext<ExperienceRuntime | null>(null)
 
@@ -53,6 +56,16 @@ function isCameraPermissionDenied(error: unknown) {
   return error instanceof DOMException && ['NotAllowedError', 'PermissionDeniedError'].includes(error.name)
 }
 
+function trackExperienceEvent(enabled: boolean, event: AnalyticsEventName, properties: Record<string, unknown> = {}) {
+  if (!enabled) return
+  void import('./utils/analytics').then(({ analytics }) => analytics.track(event, properties))
+}
+
+function scrollToDemoDisclosure() {
+  const disclosure = document.getElementById('noctra-home-disclosure')
+  disclosure?.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })
+}
+
 function App({ experience }: { experience: ExperienceRuntime }) {
   const experienceRuntime = experience
   const experienceConfig = experience.config
@@ -83,13 +96,20 @@ function App({ experience }: { experience: ExperienceRuntime }) {
   const eventStations = experienceRuntime.eventStations
   const eventFoundCount = eventStations.filter((station) => isStationFound(station.id)).length
   const explorationFoundCount = explorationStationIds.filter((stationId) => isStationFound(stationId)).length
-  const stationTotal = experienceConfig.passportTotals.stations + (eventStationFound ? 1 : 0) + (secretStationFound ? 1 : 0)
+  const isNoctra = experienceConfig.id === 'noctra'
+  const noctraRewardUnlocked = isNoctra && explorationFoundCount === explorationStationIds.length
+  const stationTotal = isNoctra
+    ? explorationFoundCount + Number(secretStationFound)
+    : experienceConfig.passportTotals.stations + (eventStationFound ? 1 : 0) + (secretStationFound ? 1 : 0)
 
   useEffect(() => {
     if (analyticsInitializedRef.current) return
     analyticsInitializedRef.current = true
-    analytics.track('app_opened', { surface: 'web', experience: experienceConfig.id, language: 'es' })
-    if (analytics.isNewSession) analytics.track('session_started', { surface: 'web', experience: experienceConfig.id })
+    if (isNoctra) return
+    void import('./utils/analytics').then(({ analytics }) => {
+      analytics.track('app_opened', { surface: 'web', experience: experienceConfig.id, language: 'es' })
+      if (analytics.isNewSession) analytics.track('session_started', { surface: 'web', experience: experienceConfig.id })
+    })
   }, [])
 
   useEffect(() => {
@@ -97,7 +117,27 @@ function App({ experience }: { experience: ExperienceRuntime }) {
     document.querySelector('meta[name="theme-color"]')?.setAttribute('content', experienceConfig.theme.background)
   }, [experienceConfig])
 
-  if (vbTest) return <VirtualBackgroundTest experience={experience} />
+  useEffect(() => {
+    if (!isNoctra) return
+    let icon = document.querySelector<HTMLLinkElement>('link[rel="icon"]')
+    const createdIcon = !icon
+    if (!icon) {
+      icon = document.createElement('link')
+      icon.rel = 'icon'
+      icon.type = 'image/svg+xml'
+      document.head.append(icon)
+    }
+    const previousHref = icon.href
+    const previousType = icon.type
+    icon.href = assetUrl('experiences/noctra/noctra-mark.svg')
+    icon.type = 'image/svg+xml'
+    return () => {
+      if (createdIcon) icon?.remove()
+      else if (icon) { icon.href = previousHref; icon.type = previousType }
+    }
+  }, [isNoctra])
+
+  if (vbTest) return <Suspense fallback={<main className="phone-screen" aria-label="Cargando prueba de cámara" />}><VirtualBackgroundTest experience={experience} /></Suspense>
 
   const showStudioNotice = (notice: string) => {
     if (noticeTimer.current) window.clearTimeout(noticeTimer.current)
@@ -106,7 +146,7 @@ function App({ experience }: { experience: ExperienceRuntime }) {
   }
 
   const openStudio = (source: string) => {
-    analytics.track('button_clicked', { action: 'photo_studio_opened', source })
+    trackExperienceEvent(!isNoctra, 'button_clicked', { action: 'photo_studio_opened', source })
     if (newUnlockNoticePending) {
       setNewUnlockNoticePending(false)
       showStudioNotice(experienceConfig.content.photoStudio.newUnlockNotice)
@@ -118,7 +158,7 @@ function App({ experience }: { experience: ExperienceRuntime }) {
     const station = experienceRuntime.stationById[stationId]
     if (!station || station.type === 'secret') return
 
-    analytics.track('image_target_detected', { stationId: station.id, stationName: station.name, source: 'camera' })
+    trackExperienceEvent(!isNoctra, 'image_target_detected', { stationId: station.id, stationName: station.name, source: 'camera' })
 
     const wasFound = isStationFound(station.id)
     const nextFoundStations = wasFound ? foundStations : { ...foundStations, [station.id]: true }
@@ -143,6 +183,10 @@ function App({ experience }: { experience: ExperienceRuntime }) {
       go('unlocked')
       return
     }
+    if (isNoctra && station.id === 'nova-drop' && !wasFound) {
+      go('sponsor')
+      return
+    }
     go('detail')
   }
 
@@ -153,7 +197,7 @@ function App({ experience }: { experience: ExperienceRuntime }) {
     saveExperienceProgress(experienceRuntime, { foundStations: nextFoundStations, secretRevealSeen: true })
     setSelectedStation(secretStation)
     setSelectedStationId(secretStation.id)
-    analytics.track('button_clicked', { action: 'station_opened', stationId: secretStation.id, stationName: secretStation.name, source: 'secret_unlock' })
+    trackExperienceEvent(!isNoctra, 'button_clicked', { action: 'station_opened', stationId: secretStation.id, stationName: secretStation.name, source: 'secret_unlock' })
     go('detail')
   }
   const resetDemo = () => {
@@ -172,17 +216,21 @@ function App({ experience }: { experience: ExperienceRuntime }) {
     go('home')
   }
   const openStation = (station: Station) => {
-    analytics.track('button_clicked', { action: 'station_opened', stationId: station.id, stationName: station.name, source: 'stations' })
+    trackExperienceEvent(!isNoctra, 'button_clicked', { action: 'station_opened', stationId: station.id, stationName: station.name, source: 'stations' })
     setSelectedStation(station)
     setSelectedStationId(station.id)
-    go('detail')
+    if (isNoctra && station.type === 'permanent' && !isStationFound(station.id)) {
+      go('discover')
+      return
+    }
+    go(isNoctra && station.id === 'nova-drop' ? 'sponsor' : 'detail')
   }
   const startExperience = () => {
-    analytics.track('experience_started', { source: 'home' })
+    trackExperienceEvent(!isNoctra, 'experience_started', { source: 'home' })
     go('stations')
   }
   const openPassport = (source: string) => {
-    analytics.track('button_clicked', { action: 'passport_opened', source })
+    trackExperienceEvent(!isNoctra, 'button_clicked', { action: 'passport_opened', source })
     go('passport')
   }
   const getDemoDiscoveryStationId = () => {
@@ -206,11 +254,13 @@ function App({ experience }: { experience: ExperienceRuntime }) {
   }
 
   const renderView = (screen: View) => {
-    if (screen === 'home') return <Home onStart={startExperience} onCamera={() => go('discover')} onPassport={() => openPassport('home')} onMenu={() => go('menu')} />
+    if (isNoctra && screen === 'sponsor') return <NoctraSponsorActivation experience={experienceRuntime} onBack={() => go('stations')} onPassport={() => openPassport('nova_drop')} onContinue={() => go('stations')} />
+    if (isNoctra && screen === 'reward') return <NoctraReward experience={experienceRuntime} unlocked={noctraRewardUnlocked} progress={explorationFoundCount} required={explorationStationIds.length} onBack={() => go('stations')} onPhoto={() => openStudio('final_drop')} onExplore={() => go('stations')} />
+    if (screen === 'home') return <Home onStart={startExperience} onLearnMore={isNoctra ? scrollToDemoDisclosure : undefined} onCamera={() => go('discover')} onPassport={() => openPassport('home')} onMenu={() => go('menu')} />
     if (screen === 'discover') return <Discover allowDemoTapUnlock={experienceConfig.discovery?.allowDemoTapUnlock === true} demoStationId={getDemoDiscoveryStationId()} onClose={() => go('home')} onDetected={completeStationDiscovery} />
     if (screen === 'unlocked') return <Unlocked onBack={() => go('discover')} onDetails={() => openStation(eventStation)} onPhoto={() => openStudio('unlocked')} />
     if (screen === 'secret-reveal') return <SecretReveal onBack={() => go('stations')} onUnlock={unlockSecretStation} />
-    if (screen === 'stations') return <Stations selectedStationId={selectedStationId} isStationFound={isStationFound} explorationFoundCount={explorationFoundCount} eventFoundCount={eventFoundCount} eventEditionTotal={eventStations.length} onCamera={() => go('discover')} onPassport={() => openPassport('stations')} onMenu={() => go('menu')} onOpen={openStation} />
+    if (screen === 'stations') return <Stations selectedStationId={selectedStationId} isStationFound={isStationFound} explorationFoundCount={explorationFoundCount} eventFoundCount={eventFoundCount} eventEditionTotal={eventStations.length} onCamera={() => go('discover')} onPassport={() => openPassport('stations')} onMenu={() => go('menu')} onOpen={openStation} afterContent={isNoctra ? <NoctraRewardEntry unlocked={noctraRewardUnlocked} progress={explorationFoundCount} required={explorationStationIds.length} onOpen={() => go('reward')} /> : undefined} />
     if (screen === 'studio') return <PhotoStudio selectedOverlay={selectedOverlay} isStationFound={isStationFound} notice={studioNotice} tab={studioTab} onSelect={setSelectedOverlay} onCaptured={(photo, filter) => { setCapturedPhoto(photo); setCapturedFilter(filter) }} onLocked={() => showStudioNotice(experienceConfig.content.photoStudio.lockedNotice)} onTab={setStudioTab} onClose={() => go('stations')} onResult={() => go('share')} />
     if (screen === 'share') return <ShareResult photoSrc={capturedPhoto || experienceConfig.cameraImage} filterId={capturedFilter} onClose={() => go('studio')} onEdit={() => go('studio')} />
     if (screen === 'detail') return <StationDetail station={selectedStation} onBack={() => go('stations')} onPhoto={() => openStudio('station_detail')} />
@@ -239,7 +289,7 @@ function App({ experience }: { experience: ExperienceRuntime }) {
     '--experience-nav-background': experienceConfig.theme.navBackground,
   } as CSSProperties
 
-  return <ExperienceContext.Provider value={experience}><main className="app-shell" style={themeStyle}><div className="motion-stage">
+  return <ExperienceContext.Provider value={experience}><main className={`app-shell${isNoctra ? ' noctra-app' : ''}`} style={themeStyle}><div className="motion-stage">
     {outgoingView && <div className="motion-layer outgoing" aria-hidden="true">{renderView(outgoingView)}</div>}
     <div className="motion-layer incoming">{renderView(view)}</div>
   </div></main></ExperienceContext.Provider>
@@ -258,10 +308,34 @@ function BottomNav({ active, onExplore, onCamera, onPassport }: { active: string
   return <nav className="bottom-nav"><button className={active === 'explore' ? 'active' : ''} onClick={onExplore}><Sparkles size={17} /><span>{navigation.explore}</span></button><button className={active === 'camera' ? 'active' : ''} onClick={onCamera}><Camera size={18} /><span>{navigation.camera}</span></button><button className={active === 'passport' ? 'active' : ''} onClick={onPassport}><Grid2X2 size={17} /><span>{navigation.passport}</span></button></nav>
 }
 
-function Home({ onStart, onCamera, onPassport, onMenu }: { onStart: () => void; onCamera: () => void; onPassport: () => void; onMenu: () => void }) {
+function Home({ onStart, onLearnMore, onCamera, onPassport, onMenu }: { onStart: () => void; onLearnMore?: () => void; onCamera: () => void; onPassport: () => void; onMenu: () => void }) {
   const experienceConfig = useExperienceRuntime().config
   const content = experienceConfig.content.home
-  return <section className="phone-screen home-screen"><div className="photo-bg" style={{ backgroundImage: `url(${experienceConfig.heroImage})` }} /><div className="photo-shade" /><Header /><button className="top-menu-button" onClick={onMenu}><MenuIcon size={21} /></button><div className="home-tag"><ContentLines lines={content.tagLines} /></div><div className="home-copy"><span className="home-demo-mark">{content.demoLabel}</span><h1><ContentLines lines={content.titleLines} /></h1><p>{experienceConfig.tagline}</p><button className="cream-button" onClick={onStart}>{content.startLabel} <ArrowRight size={18} /></button><p className="home-demo-note"><strong>{content.demoNoteTitle}</strong> {content.demoNote}</p></div><BottomNav active="explore" onExplore={onStart} onCamera={onCamera} onPassport={onPassport} /></section>
+  const hasDemoDisclosure = Boolean(content.demoDisclosureTitle && content.demoDisclosureBody)
+  return <section className={`phone-screen home-screen${hasDemoDisclosure ? ' has-demo-disclosure' : ''}`}>
+    <div className="home-hero">
+      <div className="photo-bg" style={{ backgroundImage: `url(${experienceConfig.heroImage})` }} />
+      <div className="photo-shade" />
+      <Header />
+      <button className="top-menu-button" onClick={onMenu}><MenuIcon size={21} /></button>
+      <div className="home-tag"><ContentLines lines={content.tagLines} /></div>
+      <div className="home-copy">
+        {content.demoLabel && <span className="home-demo-mark">{content.demoLabel}</span>}
+        <h1><ContentLines lines={content.titleLines} /></h1>
+        <p>{experienceConfig.tagline}</p>
+        <button className="cream-button" onClick={hasDemoDisclosure ? onLearnMore ?? onStart : onStart}>{content.startLabel} <ArrowRight size={18} /></button>
+        {!hasDemoDisclosure && <p className="home-demo-note"><strong>{content.demoNoteTitle}</strong> {content.demoNote}</p>}
+      </div>
+      <BottomNav active="explore" onExplore={onStart} onCamera={onCamera} onPassport={onPassport} />
+    </div>
+    {hasDemoDisclosure && <section className="home-demo-disclosure" id="noctra-home-disclosure">
+      <h2>{content.demoDisclosureTitle}</h2>
+      <p>{content.demoDisclosureBody}</p>
+      {content.demoDisclosureNote && <p className="home-demo-disclosure__note">{content.demoDisclosureNote}</p>}
+      <small>Demo creada por Corsteno.</small>
+      <button className="cream-button" onClick={onStart}>{content.secondaryStartLabel || content.startLabel} <ArrowRight size={18} /></button>
+    </section>}
+  </section>
 }
 
 function Discover({ onClose, onDetected, allowDemoTapUnlock, demoStationId }: { onClose: () => void; onDetected: (stationId: string) => void; allowDemoTapUnlock: boolean; demoStationId?: string }) {
@@ -341,6 +415,7 @@ function Discover({ onClose, onDetected, allowDemoTapUnlock, demoStationId }: { 
 
     const startScanner = async (stream: MediaStream, video: HTMLVideoElement) => {
       try {
+        const { BrowserQRCodeReader } = await import('@zxing/browser')
         const reader = new BrowserQRCodeReader()
         const controls = await reader.decodeFromStream(stream, video, (result) => {
           if (!mounted || hasDetectedRef.current || !result) return
@@ -357,7 +432,7 @@ function Discover({ onClose, onDetected, allowDemoTapUnlock, demoStationId }: { 
         scannerControlsRef.current = controls
       } catch (error: unknown) {
         if (!mounted) return
-        if (isCameraPermissionDenied(error)) analytics.track('camera_permission_denied', { source: 'discover' })
+        if (isCameraPermissionDenied(error)) trackExperienceEvent(experienceConfig.id !== 'noctra', 'camera_permission_denied', { source: 'discover' })
         cleanupDiscover()
         setCameraNotice(scannerError)
       }
@@ -374,7 +449,7 @@ function Discover({ onClose, onDetected, allowDemoTapUnlock, demoStationId }: { 
           video: { facingMode: { ideal: 'environment' } },
           audio: false,
         })
-        analytics.track('camera_permission_granted', { source: 'discover' })
+        trackExperienceEvent(experienceConfig.id !== 'noctra', 'camera_permission_granted', { source: 'discover' })
 
         if (!mounted) {
           stream.getTracks().forEach((track) => track.stop())
@@ -424,7 +499,7 @@ function Discover({ onClose, onDetected, allowDemoTapUnlock, demoStationId }: { 
         void startScanner(stream, video)
       } catch (error: unknown) {
         if (mounted) {
-          if (isCameraPermissionDenied(error)) analytics.track('camera_permission_denied', { source: 'discover' })
+          if (isCameraPermissionDenied(error)) trackExperienceEvent(experienceConfig.id !== 'noctra', 'camera_permission_denied', { source: 'discover' })
           cleanupDiscover()
           setCameraNotice(cameraError)
         }
@@ -463,33 +538,51 @@ function SecretReveal({ onBack, onUnlock }: { onBack: () => void; onUnlock: () =
   const secretStation = requireStation(experienceRuntime.secretStation, 'una secret station')
   const filterBackgrounds = experienceRuntime.photoStudio.filterBackgrounds
   const secretBackground = filterBackgrounds[secretStation.id]
-  return <section className="phone-screen full-photo-screen secret-reveal-screen" style={{ backgroundImage: `url(${secretBackground})` }}><div className="photo-shade strong" /><header className="floating-header"><button className="icon-button secret-reveal-back-button" onClick={onBack} aria-label="Volver"><ArrowLeft size={20} /></button><span>{content.brandLabel}</span><span>{content.page}</span></header><div className="unlocked-copy secret-reveal-copy"><p className="eyebrow">{content.revealedLabel}</p><p className="eyebrow">{content.subtitle}</p><h1>{content.title}</h1><p><ContentLines lines={content.descriptionLines} /></p></div><div className="stacked-actions"><button className="cream-button" onClick={onUnlock}>{content.unlockLabel} <ArrowRight size={18} /></button></div></section>
+  return <section className="phone-screen full-photo-screen secret-reveal-screen" style={{ backgroundImage: `url(${secretBackground || secretStation.image})` }}><div className="photo-shade strong" /><header className="floating-header"><button className="icon-button secret-reveal-back-button" onClick={onBack} aria-label="Volver"><ArrowLeft size={20} /></button><span>{content.brandLabel}</span><span>{content.page}</span></header><div className="unlocked-copy secret-reveal-copy"><p className="eyebrow">{content.revealedLabel}</p><p className="eyebrow">{content.subtitle}</p><h1>{content.title}</h1><p><ContentLines lines={content.descriptionLines} /></p></div><div className="stacked-actions"><button className="cream-button" onClick={onUnlock}>{content.unlockLabel} <ArrowRight size={18} /></button></div></section>
 }
 
 function ExplorationProgress({ foundCount }: { foundCount: number }) {
   const experienceRuntime = useExperienceRuntime()
   const content = experienceRuntime.config.content.stations
   const explorationStationIds = experienceRuntime.explorationStationIds
-  const copy = foundCount === explorationStationIds.length - 1 ? content.explorationRemaining : content.explorationComplete
+  const copy = foundCount === explorationStationIds.length
+    ? content.explorationComplete
+    : foundCount === explorationStationIds.length - 1
+      ? content.explorationRemaining
+      : content.explorationIntro || content.explorationComplete
   return <div className="exploration-progress"><div className="exploration-progress-heading"><span>{content.explorationTitle}</span><span>{foundCount} / {explorationStationIds.length}</span></div><div className="exploration-progress-dots" aria-label={`${foundCount} de ${explorationStationIds.length} estaciones encontradas`}>{explorationStationIds.map((stationId) => <span className={foundCount > explorationStationIds.indexOf(stationId) ? 'found' : ''} key={stationId} />)}</div><p>{copy}</p></div>
 }
 
-function Stations({ selectedStationId, isStationFound, explorationFoundCount, eventFoundCount, eventEditionTotal, onCamera, onPassport, onMenu, onOpen }: { selectedStationId: string | null; isStationFound: (stationId: string) => boolean; explorationFoundCount: number; eventFoundCount: number; eventEditionTotal: number; onCamera: () => void; onPassport: () => void; onMenu: () => void; onOpen: (station: Station) => void }) {
+function Stations({ selectedStationId, isStationFound, explorationFoundCount, eventFoundCount, eventEditionTotal, onCamera, onPassport, onMenu, onOpen, afterContent }: { selectedStationId: string | null; isStationFound: (stationId: string) => boolean; explorationFoundCount: number; eventFoundCount: number; eventEditionTotal: number; onCamera: () => void; onPassport: () => void; onMenu: () => void; onOpen: (station: Station) => void; afterContent?: ReactNode }) {
   const experienceRuntime = useExperienceRuntime()
-  const content = experienceRuntime.config.content.stations
+  const experienceConfig = experienceRuntime.config
+  const content = experienceConfig.content.stations
   const permanentStations = experienceRuntime.permanentStations
   const eventStation = requireStation(experienceRuntime.eventStation, 'una estación de evento')
   const secretStation = requireStation(experienceRuntime.secretStation, 'una secret station')
+  const isNoctra = experienceConfig.id === 'noctra'
+  const permanentFoundCount = permanentStations.filter((station) => isStationFound(station.id)).length
   const [activeTab, setActiveTab] = useState('all')
   const eventStationFound = isStationFound(eventStation.id)
   const secretStationFound = isStationFound(secretStation.id)
-  return <section className="phone-screen stations-screen"><Header page={content.headerSuffix} /><button className="top-menu-button" onClick={onMenu}><MenuIcon size={21} /></button><div className="stations-tabs">{[['all', content.tabs.all], ['permanent', content.tabs.permanent], ['special', content.tabs.special]].map(([id, label]) => <button key={id} className={activeTab === id ? 'selected' : ''} onClick={() => setActiveTab(id)}>{label}</button>)}</div><div className="stations-content"><ExplorationProgress foundCount={explorationFoundCount} /><div className="section-label"><span>{content.permanentLabel}</span><span>{permanentStations.length.toString().padStart(2, '0')} / {permanentStations.length.toString().padStart(2, '0')}</span></div><div className="station-grid-ref">{permanentStations.map((station) => <StationTile key={station.id} station={station} selected={selectedStationId === station.id} onOpen={onOpen} />)}</div><div className="section-label event-label"><span>{content.eventLabel}</span><span><span key={eventFoundCount} className="event-progress-count">{eventFoundCount.toString().padStart(2, '0')}</span> / {eventEditionTotal.toString().padStart(2, '0')}</span></div><button className={`event-strip ${eventStationFound ? '' : 'locked-event-strip'}`} disabled={!eventStationFound} aria-disabled={!eventStationFound} onClick={() => { if (isStationFound(eventStation.id)) onOpen(eventStation) }}><img className={eventStationFound ? undefined : 'locked-event-image'} src={eventStation.image} alt={eventStation.name} /><div><h3>{eventStation.name}</h3><p>{eventStationFound ? content.foundLabel : <><>{content.notFoundLabel}</><br />{content.eventAvailability}</>}</p></div>{eventStationFound && <ArrowRight size={20} />}</button><button className={`secret-strip ${secretStationFound ? 'secret-unlocked' : 'secret-locked'}`} disabled={!secretStationFound} aria-disabled={!secretStationFound} onClick={() => { if (secretStationFound) onOpen(secretStation) }}><div className="secret-blur" style={{ backgroundImage: `url(${secretStation.image})` }} /><strong>{secretStationFound ? secretStation.name : '???'}</strong><span>{secretStationFound ? content.secretFoundLabel : content.secretLockedLabel}</span>{secretStationFound && <ArrowRight size={18} />}</button></div><BottomNav active="explore" onExplore={() => undefined} onCamera={onCamera} onPassport={onPassport} /></section>
+  return <section className="phone-screen stations-screen"><Header page={content.headerSuffix} /><button className="top-menu-button" onClick={onMenu}><MenuIcon size={21} /></button><div className="stations-tabs">{[['all', content.tabs.all], ['permanent', content.tabs.permanent], ['special', content.tabs.special]].map(([id, label]) => <button key={id} className={activeTab === id ? 'selected' : ''} onClick={() => setActiveTab(id)}>{label}</button>)}</div><div className="stations-content"><ExplorationProgress foundCount={explorationFoundCount} /><div className="section-label"><span>{content.permanentLabel}</span><span>{(isNoctra ? permanentFoundCount : permanentStations.length).toString().padStart(2, '0')} / {permanentStations.length.toString().padStart(2, '0')}</span></div><div className="station-grid-ref">{permanentStations.map((station) => <StationTile key={station.id} station={station} selected={selectedStationId === station.id} locked={isNoctra && !isStationFound(station.id)} onOpen={onOpen} />)}</div><div className="section-label event-label"><span>{content.eventLabel}</span><span><span key={eventFoundCount} className="event-progress-count">{eventFoundCount.toString().padStart(2, '0')}</span> / {eventEditionTotal.toString().padStart(2, '0')}</span></div><button className={`event-strip ${eventStationFound ? '' : 'locked-event-strip'}`} disabled={!eventStationFound} aria-disabled={!eventStationFound} onClick={() => { if (isStationFound(eventStation.id)) onOpen(eventStation) }}><img className={eventStationFound ? undefined : 'locked-event-image'} src={eventStation.image} alt={eventStation.name} /><div><h3>{eventStation.name}</h3><p>{eventStationFound ? content.foundLabel : <><>{content.notFoundLabel}</><br />{content.eventAvailability}</>}</p></div>{eventStationFound && <ArrowRight size={20} />}</button><button className={`secret-strip ${secretStationFound ? 'secret-unlocked' : 'secret-locked'}`} disabled={!secretStationFound} aria-disabled={!secretStationFound} onClick={() => { if (secretStationFound) onOpen(secretStation) }}><div className="secret-blur" style={{ backgroundImage: `url(${secretStation.image})` }} /><strong>{secretStationFound ? secretStation.name : '???'}</strong><span>{secretStationFound ? content.secretFoundLabel : content.secretLockedLabel}</span>{secretStationFound && <ArrowRight size={18} />}</button>{afterContent}</div><BottomNav active="explore" onExplore={() => undefined} onCamera={onCamera} onPassport={onPassport} /></section>
 }
 
-function StationTile({ station, selected, onOpen }: { station: Station; selected: boolean; onOpen: (station: Station) => void }) {
+function StationTile({ station, selected, locked = false, onOpen }: { station: Station; selected: boolean; locked?: boolean; onOpen: (station: Station) => void }) {
   const content = useExperienceRuntime().config.content.stations
   const numeral = ['I', 'II', 'III', 'IV'][station.count - 1]
-  return <button className={`station-tile ${selected ? 'selected-station' : ''}`} onClick={() => onOpen(station)}><img src={station.image} alt={station.name} /><div className="tile-shade" /><div className="tile-copy"><strong>{station.name}</strong><b>{numeral}</b><small>{content.foundLabel}<br />{station.count} {station.count === 1 ? content.tileTimesSingular : content.tileTimesPlural}</small></div></button>
+  return <button className={`station-tile ${selected ? 'selected-station' : ''}${locked ? ' locked-station' : ''}`} aria-label={`${station.name}, ${locked ? content.notFoundLabel : content.foundLabel}`} onClick={() => onOpen(station)}><img src={station.image} alt="" /><div className="tile-shade" /><div className="tile-copy"><strong>{station.name}</strong><b>{numeral}</b><small>{locked ? content.notFoundLabel : content.foundLabel}<br />{station.count} {station.count === 1 ? content.tileTimesSingular : content.tileTimesPlural}</small></div></button>
+}
+
+function NoctraRewardEntry({ unlocked, progress, required, onOpen }: { unlocked: boolean; progress: number; required: number; onOpen: () => void }) {
+  return <section className={`noctra-reward-entry${unlocked ? ' is-unlocked' : ''}`}>
+    <p>FINAL DROP · ACCESO BACKSTAGE</p>
+    <button type="button" onClick={onOpen}>
+      <span>{unlocked ? 'Tu acceso ya está disponible.' : `${progress} / ${required} momentos para abrir la última puerta.`}</span>
+      <strong>{unlocked ? 'Ver recompensa' : 'Descubrir la recompensa'}</strong>
+      <ArrowRight size={17} />
+    </button>
+  </section>
 }
 
 function PhotoStudio({ selectedOverlay, isStationFound, notice, tab, onSelect, onCaptured, onLocked, onTab, onClose, onResult }: { selectedOverlay: string; isStationFound: (stationId: string) => boolean; notice: string | null; tab: string; onSelect: (id: string) => void; onCaptured: (photo: string, filter: string) => void; onLocked: () => void; onTab: (tab: string) => void; onClose: () => void; onResult: () => void }) {
@@ -695,7 +788,7 @@ function PhotoStudio({ selectedOverlay, isStationFound, notice, tab, onSelect, o
         },
         audio: false,
       })
-      analytics.track('camera_permission_granted', { source: 'photo_studio' })
+      trackExperienceEvent(experienceConfig.id !== 'noctra', 'camera_permission_granted', { source: 'photo_studio' })
       if (!mountedRef.current || sessionId !== sessionIdRef.current) {
         stream.getTracks().forEach((track) => track.stop())
         return
@@ -706,7 +799,7 @@ function PhotoStudio({ selectedOverlay, isStationFound, notice, tab, onSelect, o
       if (videoRef.current) await attachStreamToVideo(videoRef.current, stream, sessionId)
     } catch (error: unknown) {
       stopCamera()
-      if (isCameraPermissionDenied(error)) analytics.track('camera_permission_denied', { source: 'photo_studio' })
+      if (isCameraPermissionDenied(error)) trackExperienceEvent(experienceConfig.id !== 'noctra', 'camera_permission_denied', { source: 'photo_studio' })
       setPermissionState(error instanceof DOMException && error.name === 'NotAllowedError' ? 'denied' : 'error')
       setCameraState(cameraDebug ? 'error' : 'fallback')
       setCameraError(error instanceof Error ? error.message : 'Unable to access camera')
@@ -912,6 +1005,7 @@ function PhotoStudio({ selectedOverlay, isStationFound, notice, tab, onSelect, o
     try {
       if (!segmenterPromiseRef.current) {
         segmenterPromiseRef.current = (async () => {
+          const { FilesetResolver, ImageSegmenter } = await import('@mediapipe/tasks-vision')
           const vision = await FilesetResolver.forVisionTasks(SEGMENTATION_WASM_PATH)
           const options = {
             baseOptions: { modelAssetPath: MODEL_PATH, delegate: 'GPU' as const },
@@ -1009,7 +1103,7 @@ function PhotoStudio({ selectedOverlay, isStationFound, notice, tab, onSelect, o
     const photo = compositeCanvas && hasCompositeFrameRef.current ? compositeCanvas.toDataURL('image/jpeg', .92) : await renderFilteredPhoto(basePhoto, selectedOverlay)
     setPhotoDataUrl(photo)
     onCaptured(photo, selectedOverlay)
-    analytics.track('button_clicked', { action: 'photo_captured', filterId: selectedOverlay, source: 'photo_studio' })
+    trackExperienceEvent(experienceConfig.id !== 'noctra', 'button_clicked', { action: 'photo_captured', filterId: selectedOverlay, source: 'photo_studio' })
     stopSegmentation()
     hasCompositeFrameRef.current = false
     setHasCompositeFrame(false)
@@ -1066,11 +1160,12 @@ function ShareResult({ photoSrc, filterId, onClose, onEdit }: { photoSrc: string
   const experienceConfig = experienceRuntime.config
   const sharing = experienceConfig.content.sharing
   const eventStation = requireStation(experienceRuntime.eventStation, 'una estación de evento')
+  const isNoctra = experienceConfig.id === 'noctra'
   const filename = `${sharing.filenamePrefix}-${filterId}.jpg`
   const isEventFilter = filterId === eventStation.id
   const resultName = filterId === experienceRuntime.photoStudio.defaultFilterId ? experienceConfig.name : experienceRuntime.stationById[filterId]?.name || experienceConfig.name
   useEffect(() => {
-    analytics.track('experience_finished', { filterId, source: 'photo_studio' })
+    trackExperienceEvent(!isNoctra, 'experience_finished', { filterId, source: 'photo_studio' })
   }, [filterId])
   const downloadPhoto = async () => {
     const blob = await (await fetch(photoSrc)).blob()
@@ -1082,7 +1177,7 @@ function ShareResult({ photoSrc, filterId, onClose, onEdit }: { photoSrc: string
     window.setTimeout(() => URL.revokeObjectURL(url), 1000)
   }
   const sharePhoto = async (source: string) => {
-    analytics.track('button_clicked', { action: 'photo_shared', filterId, source })
+    trackExperienceEvent(!isNoctra, 'button_clicked', { action: 'photo_shared', filterId, source })
     try {
       const blob = await (await fetch(photoSrc)).blob()
       const file = new File([blob], filename, { type: blob.type || 'image/jpeg' })
@@ -1116,7 +1211,7 @@ function Passport({ stationTotal, explorationFoundCount, isStationFound, onExplo
   const content = experienceConfig.content.passport
   const eventStation = requireStation(experienceRuntime.eventStation, 'una estación de evento')
   const secretStation = requireStation(experienceRuntime.secretStation, 'una secret station')
-  return <section className="phone-screen passport-screen"><Header /><button className="top-menu-button" onClick={onMenu}><MenuIcon size={21} /></button><div className="passport-heading"><p className="eyebrow">{content.eyebrow}</p><h1>{content.title}</h1><div className="passport-stats"><span><b>{experienceConfig.passportTotals.nights}</b> {content.statLabels.nights}</span><span><b>{stationTotal}</b> {content.statLabels.stations}</span><span><b>{experienceConfig.passportTotals.specials}</b> {content.statLabels.specials}</span></div></div><ExplorationProgress foundCount={explorationFoundCount} /><div className="ticket"><p><ContentLines lines={content.ticketLines} /></p><div className="ticket-numbers"><b>{experienceConfig.passportTotals.nights}<small>{content.statLabels.nights}</small></b><b>{stationTotal}<small>{content.statLabels.stations}</small></b><b>{experienceConfig.passportTotals.specials}<small>{content.statLabels.specials}</small></b></div><Ticket size={35} /></div><div className="history-list">{experienceConfig.passportHistory.map((item) => { const isSecretItem = item.stationId === secretStation.id; const locked = (item.stationId === eventStation.id || isSecretItem) && !isStationFound(item.stationId); const label = isSecretItem && locked ? '???' : item.name; const status = isSecretItem ? (locked ? content.secretLockedStatus : content.secretFoundStatus) : locked ? content.notFoundStatus : item.date; return <div className={`history-row ${locked ? 'locked-history-row' : ''}`} key={item.stationId}><img src={item.image} alt="" /><span>{label}</span><small>{status}</small></div> })}</div><p className="passport-copy"><ContentLines lines={content.closingLines} /></p><BottomNav active="passport" onExplore={onExplore} onCamera={onCamera} onPassport={() => undefined} /></section>
+  return <section className="phone-screen passport-screen"><Header /><button className="top-menu-button" onClick={onMenu}><MenuIcon size={21} /></button><div className="passport-heading"><p className="eyebrow">{content.eyebrow}</p><h1>{content.title}</h1><div className="passport-stats"><span><b>{experienceConfig.passportTotals.nights}</b> {content.statLabels.nights}</span><span><b>{stationTotal}</b> {content.statLabels.stations}</span><span><b>{experienceConfig.passportTotals.specials}</b> {content.statLabels.specials}</span></div></div><ExplorationProgress foundCount={explorationFoundCount} /><div className="ticket"><p><ContentLines lines={content.ticketLines} /></p><div className="ticket-numbers"><b>{experienceConfig.passportTotals.nights}<small>{content.statLabels.nights}</small></b><b>{stationTotal}<small>{content.statLabels.stations}</small></b><b>{experienceConfig.passportTotals.specials}<small>{content.statLabels.specials}</small></b></div><Ticket size={35} /></div><div className="history-list">{experienceConfig.passportHistory.map((item) => { const isSecretItem = item.stationId === secretStation.id; const itemFound = isStationFound(item.stationId) || (item.requiredExplorationCount !== undefined && explorationFoundCount >= item.requiredExplorationCount); const locked = (item.stationId === eventStation.id || isSecretItem || item.requiresUnlock === true) && !itemFound; const label = isSecretItem && locked ? '???' : item.name; const status = isSecretItem ? (locked ? content.secretLockedStatus : content.secretFoundStatus) : locked ? content.notFoundStatus : item.date; return <div className={`history-row ${locked ? 'locked-history-row' : ''}`} key={item.stationId}><img src={item.image} alt="" /><span>{label}</span><small>{status}</small></div> })}</div><p className="passport-copy"><ContentLines lines={content.closingLines} /></p><BottomNav active="passport" onExplore={onExplore} onCamera={onCamera} onPassport={() => undefined} /></section>
 }
 
 function Upcoming({ onExplore, onCamera, onPassport, onMenu }: { onExplore: () => void; onCamera: () => void; onPassport: () => void; onMenu: () => void }) {

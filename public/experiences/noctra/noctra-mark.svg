@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-labelledby="title">
+  <title id="title">NOCTRA signal</title>
+  <g fill="none" stroke="#f3eee7" stroke-width="1.5">
+    <circle cx="60" cy="60" r="47" opacity=".2"/>
+    <circle cx="60" cy="60" r="34" opacity=".38"/>
+    <circle cx="60" cy="60" r="21" opacity=".66"/>
+    <path d="M60 5v110M5 60h110" opacity=".18"/>
+    <path d="M22 22l76 76M98 22 22 98" opacity=".12"/>
+  </g>
+  <circle cx="60" cy="60" r="4" fill="#e66b50"/>
+</svg>

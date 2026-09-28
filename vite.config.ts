@@ -5,6 +5,7 @@ const EXPERIENCE_BASES: Record<string, string> = {
   'la-estacion': '/la-estacion/',
   'la-fabrica': '/la-fabrica/',
   dahaus: '/dahaus/',
+  noctra: '/noctra/',
 }
 
 export default defineConfig(({ mode }) => {

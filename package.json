@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:noctra": "vite --mode noctra",
     "build": "tsc -b && vite build",
+    "build:noctra": "tsc -b && vite build --mode noctra",
     "typecheck": "tsc -b",
     "preview": "vite preview"
   },

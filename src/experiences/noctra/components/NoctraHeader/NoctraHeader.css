@@ -1,0 +1,9 @@
+.noctra-header { position: relative; z-index: 5; display: grid; grid-template-columns: 44px minmax(0,1fr) max-content; align-items: center; min-height: 76px; padding: calc(12px + env(safe-area-inset-top, 0px)) 22px 12px; }
+.noctra-header__logo { position: absolute; top: 50%; left: 50%; display: block; width: min(146px, 42vw); height: 28px; margin: 0; object-fit: contain; object-position: center; transform: translate(-50%,-50%); }
+.noctra-header__back, .noctra-header__menu { display: inline-flex; align-items: center; justify-content: center; width: 42px; height: 42px; padding: 0; border: 1px solid rgba(243,238,231,.18); border-radius: 50%; background: rgba(12,12,15,.42); color: #f3eee7; transition: background-color 180ms ease, border-color 180ms ease, transform 180ms ease; }
+.noctra-header__menu { grid-column: 3; }
+.noctra-header__back:hover, .noctra-header__menu:hover { border-color: rgba(243,238,231,.44); background: rgba(243,238,231,.08); }
+.noctra-header__back:active, .noctra-header__menu:active { transform: scale(.96); }
+.noctra-header__back:focus-visible, .noctra-header__menu:focus-visible { outline: 2px solid #e66b50; outline-offset: 3px; }
+.noctra-header__page { justify-self: end; max-width: min(34vw, 132px); color: rgba(243,238,231,.61); font-size: 7px; line-height: 1.4; letter-spacing: .12em; text-align: right; text-transform: uppercase; }
+.noctra-header__spacer { width: 42px; }

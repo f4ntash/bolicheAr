@@ -1,6 +1,7 @@
 import { laEstacionRuntime } from '../config/events/laEstacion'
 import { laFabricaRuntime } from '../config/events/laFabrica'
 import { dahausRuntime } from '../config/events/dahaus'
+import { noctraRuntime } from '../config/events/noctra'
 import type { ExperienceRuntime } from '../types'
 
 const EXPERIENCE_DEFAULT = 'la-estacion'
@@ -8,6 +9,7 @@ const EXPERIENCE_RUNTIMES: Record<string, ExperienceRuntime> = {
   'la-estacion': laEstacionRuntime,
   'la-fabrica': laFabricaRuntime,
   dahaus: dahausRuntime,
+  noctra: noctraRuntime,
 }
 
 export function resolveExperience(): ExperienceRuntime {

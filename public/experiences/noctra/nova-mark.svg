@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 100" role="img" aria-labelledby="title">
+  <title id="title">NOVA</title>
+  <path d="M28 76 60 20l32 56H28Z" fill="none" stroke="#f1c7a4" stroke-width="2"/>
+  <path d="M43 60h34M60 20v56" stroke="#e66b50" stroke-width="1.5" opacity=".9"/>
+  <circle cx="60" cy="60" r="4" fill="#f1c7a4"/>
+  <text x="119" y="70" fill="#f3eee7" font-family="Arial, Helvetica, sans-serif" font-size="48" font-weight="400" letter-spacing="12">NOVA</text>
+</svg>
