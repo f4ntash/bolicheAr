@@ -1,0 +1,168 @@
+.noctra-app .noctra-home-loop {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 15px 0 12px;
+  padding: 10px 12px 9px;
+  border-left: 1px solid rgba(245, 239, 228, .58);
+  background: linear-gradient(90deg, rgba(10, 10, 13, .44), rgba(10, 10, 13, .04));
+  color: #f3eee7;
+}
+.noctra-app .noctra-home-loop p { margin: 0; font-size: 10px; line-height: 1.55; letter-spacing: .035em; }
+.noctra-app .noctra-home-loop > span { flex: 0 0 auto; color: rgba(243, 238, 231, .72); font-size: 7px; letter-spacing: .15em; text-align: right; text-transform: uppercase; }
+.noctra-app .noctra-home-loop i, .noctra-moment-tile small i { display: inline-block; width: 3px; height: 3px; margin: 0 5px 2px; border-radius: 50%; background: #e1a77b; }
+
+.noctra-app .noctra-reveal {
+  display: flex;
+  min-height: 100dvh;
+  height: 100dvh;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden;
+  background-position: center;
+  background-size: cover;
+  color: #f4efe7;
+}
+.noctra-reveal__shade { position: absolute; z-index: 0; inset: 0; background: linear-gradient(180deg, rgba(7, 8, 12, .25) 0%, rgba(7, 8, 12, .25) 26%, rgba(7, 8, 12, .88) 78%, #07080a 100%); }
+.noctra-reveal__lights { position: absolute; z-index: 1; inset: 0; overflow: hidden; pointer-events: none; }
+.noctra-reveal__lights i { position: absolute; top: -20%; width: 14%; height: 82%; background: linear-gradient(180deg, transparent, rgba(230, 160, 107, .2), transparent); filter: blur(16px); transform: rotate(17deg); animation: noctra-reveal-beam 3.8s ease-in-out infinite alternate; }
+.noctra-reveal__lights i:nth-child(1) { left: 14%; }
+.noctra-reveal__lights i:nth-child(2) { left: 39%; animation-delay: -.9s; opacity: .65; }
+.noctra-reveal__lights i:nth-child(3) { left: 67%; animation-delay: -1.7s; opacity: .72; }
+.noctra-reveal__lights i:nth-child(4) { left: 84%; animation-delay: -.4s; opacity: .5; }
+.noctra-effect-blue-stage .noctra-reveal__lights i { background: linear-gradient(180deg, transparent, rgba(118, 134, 245, .22), transparent); }
+.noctra-effect-secret-signal .noctra-reveal__lights i { background: linear-gradient(180deg, transparent, rgba(89, 218, 215, .2), transparent); }
+.noctra-effect-sunset-stage .noctra-reveal__lights i { background: linear-gradient(180deg, transparent, rgba(250, 116, 81, .24), transparent); }
+.noctra-reveal__header { position: relative; z-index: 2; display: flex; justify-content: space-between; padding: calc(24px + env(safe-area-inset-top, 0px)) 22px 0; color: rgba(243, 238, 231, .78); font-size: 9px; letter-spacing: .22em; }
+.noctra-reveal__copy { position: relative; z-index: 2; width: min(100%, 570px); margin: auto auto 22px; padding: 0 24px; animation: noctra-reveal-in 650ms cubic-bezier(.18, .7, .22, 1) both; }
+.noctra-reveal__eyebrow { display: flex; align-items: center; gap: 8px; margin: 0 0 17px; color: #e4ad84; font-size: 9px; letter-spacing: .19em; }
+.noctra-effect-secret-signal .noctra-reveal__eyebrow { color: #94dedb; }
+.noctra-reveal__edition { display: block; margin-bottom: 8px; color: rgba(243, 238, 231, .7); font-size: 8px; letter-spacing: .18em; }
+.noctra-reveal__copy h1 { max-width: 100%; margin: 0; font-family: Georgia, serif; font-size: clamp(30px, 9vw, 54px); font-weight: 400; letter-spacing: -.035em; line-height: .97; text-transform: uppercase; }
+.noctra-reveal__progress { display: flex; align-items: baseline; gap: 8px; margin: 18px 0 0; font-family: Georgia, serif; font-size: 20px; }
+.noctra-reveal__progress i { color: rgba(243, 238, 231, .45); font-size: 13px; font-style: normal; }
+.noctra-reveal__progress small { margin-left: 4px; color: rgba(243, 238, 231, .62); font-family: Arial, sans-serif; font-size: 8px; letter-spacing: .18em; }
+.noctra-reveal__description { max-width: 340px; margin: 10px 0 0; color: rgba(243, 238, 231, .82); font-family: Georgia, serif; font-size: 15px; line-height: 1.34; }
+.noctra-reveal__reward { display: flex; flex-direction: column; gap: 6px; margin-top: 18px; padding: 11px 0 0; border-top: 1px solid rgba(243, 238, 231, .28); }
+.noctra-reveal__reward span { color: rgba(243, 238, 231, .56); font-size: 7px; letter-spacing: .2em; }
+.noctra-reveal__reward strong { font-size: 10px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; }
+.noctra-reveal__actions { position: relative; z-index: 3; display: grid; gap: 8px; padding: 0 22px calc(22px + env(safe-area-inset-bottom, 0px)); }
+.noctra-reveal__actions .cream-button { display: flex; align-items: center; justify-content: space-between; min-height: 52px; gap: 9px; padding: 0 16px; font-size: 9px; letter-spacing: .12em; }
+.noctra-reveal__continue { min-height: 32px; border: 0; background: transparent; color: rgba(243, 238, 231, .62); font-size: 8px; letter-spacing: .2em; }
+@keyframes noctra-reveal-in { from { opacity: 0; transform: translateY(18px); filter: blur(7px); } to { opacity: 1; transform: translateY(0); filter: blur(0); } }
+@keyframes noctra-reveal-beam { from { opacity: .25; transform: translateX(-8px) rotate(17deg); } to { opacity: .8; transform: translateX(9px) rotate(17deg); } }
+
+.noctra-app .noctra-moments-section { margin: 22px 20px 28px; padding: 18px 0 0; border-top: 1px solid rgba(243, 238, 231, .2); }
+.noctra-moments-section__heading { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 13px; }
+.noctra-moments-section__heading p { margin: 0 0 5px; color: rgba(243, 238, 231, .58); font-size: 7px; letter-spacing: .16em; }
+.noctra-moments-section__heading h2 { margin: 0; font-family: Georgia, serif; font-size: 21px; font-weight: 400; letter-spacing: .035em; }
+.noctra-moments-section__heading > span { color: rgba(243, 238, 231, .68); font-family: Georgia, serif; font-size: 23px; }
+.noctra-moment-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.noctra-moment-tile { min-width: 0; overflow: hidden; border: 1px solid rgba(243, 238, 231, .14); background: rgba(243, 238, 231, .035); }
+.noctra-moment-tile__image { position: relative; height: clamp(112px, 35vw, 158px); overflow: hidden; background: #121216; }
+.noctra-moment-tile__image::after { position: absolute; inset: 42% 0 0; background: linear-gradient(180deg, transparent, rgba(8, 8, 11, .72)); content: ''; }
+.noctra-moment-tile__image img { width: 100%; height: 100%; object-fit: cover; filter: saturate(.8) contrast(1.04); }
+.noctra-moment-tile__image > span { position: absolute; z-index: 1; right: 7px; bottom: 7px; color: #f3eee7; font-size: 6px; letter-spacing: .18em; }
+.noctra-moment-tile__copy { min-height: 69px; padding: 8px 8px 9px; }
+.noctra-moment-tile__copy > strong { display: block; overflow: hidden; color: #f3eee7; font-family: Georgia, serif; font-size: 11px; font-weight: 400; text-overflow: ellipsis; white-space: nowrap; }
+.noctra-moment-tile__copy small { display: block; margin-top: 5px; color: rgba(243, 238, 231, .58); font-size: 6px; letter-spacing: .06em; }
+.noctra-moment-tile__copy p { margin: 6px 0 0; color: rgba(243, 238, 231, .8); font-size: 7px; line-height: 1.3; }
+.noctra-moment-tile__copy em { display: block; margin-top: 6px; color: #ddad8c; font-size: 6px; font-style: normal; letter-spacing: .14em; }
+.noctra-moments-empty { display: flex; align-items: center; gap: 12px; min-height: 78px; padding: 12px 10px; border: 1px solid rgba(243, 238, 231, .14); }
+.noctra-moments-empty > span { color: #d6aa8e; font-family: Georgia, serif; font-size: 21px; }
+.noctra-moments-empty div { flex: 1; }
+.noctra-moments-empty strong { font-family: Georgia, serif; font-size: 12px; font-weight: 400; }
+.noctra-moments-empty p { margin: 5px 0 0; color: rgba(243, 238, 231, .66); font-size: 8px; }
+.noctra-moments-empty button, .noctra-night-link { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 0; background: transparent; color: #f3eee7; }
+.noctra-moments-empty button { width: 32px; height: 32px; }
+.noctra-night-link { margin-top: 12px; padding: 8px 0; color: #ddb08e; font-size: 7px; letter-spacing: .17em; }
+
+.noctra-app .studio-screen .noctra-live-effects { position: absolute; z-index: 2; inset: 0; overflow: hidden; pointer-events: none; }
+.noctra-live-effects::before { position: absolute; inset: 0; background: linear-gradient(145deg, rgba(247, 146, 89, .13), transparent 34%, transparent 70%, rgba(251, 205, 139, .1)); content: ''; }
+.noctra-effect-blue-stage::before { background: linear-gradient(150deg, rgba(99, 111, 240, .14), transparent 38%, transparent 72%, rgba(69, 190, 236, .11)); }
+.noctra-effect-secret-signal::before { background: linear-gradient(150deg, rgba(79, 221, 218, .11), transparent 36%, transparent 70%, rgba(85, 153, 220, .09)); }
+.noctra-effect-sunset-stage::before { background: linear-gradient(150deg, rgba(252, 116, 77, .17), transparent 40%, transparent 72%, rgba(247, 190, 115, .15)); }
+.noctra-live-effects i { position: absolute; top: -10%; width: 12%; height: 68%; background: linear-gradient(180deg, transparent, rgba(244, 178, 131, .18), transparent); filter: blur(12px); transform: rotate(20deg); animation: noctra-preview-beam 4.2s ease-in-out infinite alternate; }
+.noctra-live-effects i:nth-child(1) { left: 14%; }
+.noctra-live-effects i:nth-child(2) { left: 38%; animation-delay: -.7s; }
+.noctra-live-effects i:nth-child(3) { left: 64%; animation-delay: -1.6s; }
+.noctra-live-effects i:nth-child(4) { left: 83%; animation-delay: -.35s; }
+.noctra-effect-blue-stage .noctra-live-effects i { background: linear-gradient(180deg, transparent, rgba(126, 133, 255, .18), transparent); }
+.noctra-effect-secret-signal .noctra-live-effects i { background: linear-gradient(180deg, transparent, rgba(90, 231, 224, .17), transparent); }
+.noctra-live-effects span { position: absolute; top: 0; left: -30%; width: 26%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255, 249, 235, .08), transparent); transform: skewX(-16deg); animation: noctra-preview-sweep 5.6s ease-in-out infinite; }
+.noctra-preview-stamp { position: absolute; z-index: 4; right: 18px; bottom: calc(213px + env(safe-area-inset-bottom, 0px)); left: 18px; display: grid; gap: 3px; padding-top: 8px; border-top: 1px solid rgba(247, 241, 231, .48); color: rgba(247, 241, 231, .9); pointer-events: none; text-shadow: 0 1px 8px rgba(0, 0, 0, .7); }
+.noctra-preview-stamp small { font-size: 6px; letter-spacing: .18em; }
+.noctra-preview-stamp strong { font-family: Georgia, serif; font-size: 12px; font-weight: 400; letter-spacing: .06em; text-transform: uppercase; }
+.noctra-preview-stamp span { color: rgba(247, 241, 231, .68); font-size: 6px; letter-spacing: .16em; }
+@keyframes noctra-preview-beam { from { opacity: .25; transform: translateX(-4px) rotate(20deg); } to { opacity: .74; transform: translateX(5px) rotate(20deg); } }
+@keyframes noctra-preview-sweep { 0%, 32% { transform: translateX(0) skewX(-16deg); opacity: 0; } 46% { opacity: 1; } 64%, 100% { transform: translateX(560%) skewX(-16deg); opacity: 0; } }
+
+.noctra-night-recap { min-height: 100dvh; height: 100dvh; overflow-y: auto; background-color: #08090c; background-position: center top; background-size: cover; color: #f3eee7; }
+.noctra-night-recap__shade { position: fixed; z-index: 0; inset: 0; background: linear-gradient(180deg, rgba(6, 7, 10, .66), rgba(7, 8, 11, .94) 420px, #08090c 100%); pointer-events: none; }
+.noctra-night-recap__header { position: sticky; z-index: 2; top: 0; display: flex; align-items: center; justify-content: space-between; min-height: 58px; padding: calc(10px + env(safe-area-inset-top, 0px)) 18px 9px; backdrop-filter: blur(12px); }
+.noctra-night-recap__header > span { color: rgba(243, 238, 231, .74); font-size: 7px; letter-spacing: .16em; }
+.noctra-night-recap__header .icon-button { width: 38px; height: 38px; }
+.noctra-night-recap__content { position: relative; z-index: 1; width: min(100%, 620px); margin: 0 auto; padding: 28px 20px 32px; }
+.noctra-night-recap__eyebrow { margin: 0 0 9px; color: rgba(243, 238, 231, .67); font-size: 7px; letter-spacing: .18em; }
+.noctra-night-recap__content h1 { margin: 0; font-family: Georgia, serif; font-size: clamp(56px, 17vw, 96px); font-weight: 400; letter-spacing: -.07em; line-height: .8; }
+.noctra-night-recap__content h1 i { color: #d6a37f; font-style: normal; }
+.noctra-night-recap__edition { display: flex; justify-content: space-between; margin-top: 17px; padding-bottom: 12px; border-bottom: 1px solid rgba(243, 238, 231, .3); color: rgba(243, 238, 231, .72); font-size: 7px; letter-spacing: .14em; }
+.noctra-night-recap__stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 13px 0; border-bottom: 1px solid rgba(243, 238, 231, .2); }
+.noctra-night-recap__stats div { display: grid; gap: 3px; }
+.noctra-night-recap__stats b { font-family: Georgia, serif; font-size: 23px; font-weight: 400; }
+.noctra-night-recap__stats span { color: rgba(243, 238, 231, .62); font-size: 6px; letter-spacing: .18em; }
+.noctra-night-recap__collection { margin-top: 16px; }
+.noctra-night-recap__collection > header { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 7px; letter-spacing: .16em; }
+.noctra-night-recap__collection > header span { color: rgba(243, 238, 231, .55); }
+.noctra-night-recap__grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; }
+.noctra-night-recap__grid .noctra-moment-tile__image { height: clamp(95px, 28vw, 145px); }
+.noctra-night-recap__grid .noctra-moment-tile__copy { min-height: 54px; padding: 6px; }
+.noctra-night-recap__grid .noctra-moment-tile__copy > strong { font-size: 9px; }
+.noctra-night-recap__grid .noctra-moment-tile__copy small { font-size: 5px; }
+.noctra-night-recap__grid .noctra-moment-tile__copy p { font-size: 6px; }
+.noctra-night-recap__empty { display: grid; gap: 12px; grid-column: 1 / -1; min-height: 110px; align-content: center; padding: 15px; border: 1px solid rgba(243, 238, 231, .2); color: rgba(243, 238, 231, .72); font-family: Georgia, serif; font-size: 13px; }
+.noctra-night-recap__empty button { display: flex; align-items: center; justify-content: space-between; border: 0; background: transparent; color: #e0b18c; font-family: Arial, sans-serif; font-size: 7px; letter-spacing: .16em; }
+.noctra-crew-moment { position: relative; display: grid; grid-template-columns: 1fr 48px; gap: 8px; margin-top: 13px; padding: 12px; border: 1px solid rgba(235, 222, 206, .24); background: rgba(230, 219, 204, .05); }
+.noctra-crew-moment > div:first-child { display: grid; gap: 5px; }
+.noctra-crew-moment > div:first-child span { color: #dbac88; font-size: 6px; letter-spacing: .16em; }
+.noctra-crew-moment > div:first-child strong { font-family: Georgia, serif; font-size: 11px; font-weight: 400; }
+.noctra-crew-moment > div:first-child small { color: rgba(243, 238, 231, .55); font-size: 5px; letter-spacing: .11em; }
+.noctra-crew-moment > button { width: 44px; height: 44px; align-self: center; border: 1px solid rgba(243, 238, 231, .48); border-radius: 50%; background: transparent; color: #f3eee7; font-family: Georgia, serif; font-size: 12px; }
+.noctra-crew-moment__track { height: 2px; grid-column: 1 / -1; overflow: hidden; background: rgba(243, 238, 231, .15); }
+.noctra-crew-moment__track i { display: block; height: 100%; background: #dda986; transition: width 220ms ease; }
+.noctra-night-recap__reward { display: grid; gap: 4px; margin-top: 12px; padding: 11px 12px; border: 1px solid rgba(221, 169, 134, .42); background: linear-gradient(110deg, rgba(163, 115, 84, .14), rgba(243, 238, 231, .025)); }
+.noctra-night-recap__reward span, .noctra-night-recap__reward small { color: rgba(243, 238, 231, .62); font-size: 5px; letter-spacing: .17em; }
+.noctra-night-recap__reward strong { font-family: Georgia, serif; font-size: 14px; font-weight: 400; letter-spacing: .08em; text-transform: uppercase; }
+.noctra-night-recap__share { display: flex; align-items: center; justify-content: center; gap: 9px; width: 100%; min-height: 42px; margin-top: 12px; border: 0; background: #eee8de; color: #101013; font-size: 7px; letter-spacing: .16em; }
+.noctra-night-recap__back { display: block; margin: 9px auto 0; padding: 8px; border: 0; background: transparent; color: rgba(243, 238, 231, .58); font-size: 6px; letter-spacing: .18em; }
+
+.noctra-app .noctra-photo-input { position: fixed; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.noctra-app .studio-screen.noctra-studio .studio-feedback { right: 24px; bottom: calc(198px + env(safe-area-inset-bottom, 0px)); left: 24px; font-size: 7px; line-height: 1.25; text-shadow: 0 1px 6px #08090b; }
+.noctra-app .share-screen { overflow-x: hidden; overflow-y: auto; padding-bottom: 76px; }
+.noctra-app .share-screen .corsteno-credit { position: relative; right: auto; bottom: auto; display: block; width: max-content; margin: 0 auto; }
+.noctra-app .share-screen .back-edit { position: relative; bottom: auto; left: auto; width: max-content; margin: 11px auto 20px; }
+.noctra-clip-tools { position: relative; z-index: 3; display: grid; justify-items: center; gap: 9px; width: min(100% - 36px, 510px); margin: 18px auto 32px; padding: 14px; border: 1px solid rgba(243, 238, 231, .22); background: rgba(8, 9, 12, .78); text-align: center; }
+.noctra-clip-tools > p { margin: 0; color: rgba(243, 238, 231, .68); font-size: 7px; letter-spacing: .17em; }
+.noctra-clip-tools > small, .noctra-clip-tools > span { color: rgba(243, 238, 231, .68); font-size: 8px; line-height: 1.4; }
+.noctra-clip-tools__primary { display: inline-flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 40px; padding: 0 13px; border: 0; background: #eee8de; color: #111114; font-size: 7px; letter-spacing: .12em; }
+.noctra-clip-tools__primary:disabled { opacity: .65; }
+.noctra-clip-tools__secondary { display: flex; gap: 8px; }
+.noctra-clip-tools__secondary button { padding: 8px 10px; border: 1px solid rgba(243, 238, 231, .3); background: transparent; color: #f3eee7; font-size: 7px; letter-spacing: .12em; }
+.noctra-clip-preview { width: min(100%, 240px); max-height: 330px; background: #09090b; }
+
+@media (min-width: 600px) {
+  .noctra-night-recap__content { padding-top: 18px; }
+  .noctra-night-recap__content h1 { font-size: 57px; }
+}
+@media (max-height: 760px) {
+  .noctra-reveal__copy { margin-bottom: 10px; }
+  .noctra-reveal__eyebrow { margin-bottom: 10px; }
+  .noctra-reveal__copy h1 { font-size: clamp(27px, 8vw, 42px); }
+  .noctra-reveal__reward { margin-top: 11px; }
+  .noctra-reveal__actions { padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .noctra-reveal__copy, .noctra-reveal__lights i, .noctra-live-effects i, .noctra-live-effects span { animation: none; }
+  .noctra-crew-moment__track i { transition: none; }
+}

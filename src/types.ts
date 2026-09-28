@@ -85,10 +85,13 @@ export type EngagementConfig = {
   }[]
   secretHints?: {
     showDetectedAfter: number
+    showNearAfter?: number
     lockedTitle: string
     lockedMessage: string
     detectedTitle: string
     detectedMessage: string
+    nearTitle?: string
+    nearMessage?: string
     foundTitle: string
     foundMessage: string
   }

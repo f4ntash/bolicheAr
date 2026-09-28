@@ -7,13 +7,22 @@ import { EngagementCard, EngagementContext, EngagementUnlockFeedback, FinalRewar
 import NoctraSponsorActivation from './experiences/noctra/NoctraSponsorActivation/NoctraSponsorActivation'
 import './experiences/noctra/NoctraTheme/NoctraTheme.css'
 const VirtualBackgroundTest = lazy(() => import('./VirtualBackgroundTest'))
+const NoctraExperienceUI = lazy(() => import('./experiences/noctra/NoctraMomentsExperience'))
 import { parseStationQr } from './utils/stationQr'
 import { assetUrl } from './utils/assets'
 import type { AnalyticsEventName } from './utils/analytics'
 import { loadExperienceProgress, resetExperienceProgress, saveExperienceProgress, type ExperienceProgress } from './utils/experienceStorage'
 import { applyStationEngagementUnlock, getEngagementCount, getEngagementProgressMessage, getFinalRewardState, getNewMicroRewards, reconcileEngagementProgress } from './utils/engagement'
 
-type View = 'home' | 'discover' | 'unlocked' | 'secret-reveal' | 'stations' | 'studio' | 'share' | 'detail' | 'passport' | 'upcoming' | 'menu' | 'sponsor' | 'reward'
+type View = 'home' | 'discover' | 'unlocked' | 'secret-reveal' | 'stations' | 'studio' | 'share' | 'detail' | 'passport' | 'upcoming' | 'menu' | 'sponsor' | 'reward' | 'noctra-reveal' | 'noctra-night'
+type NoctraRevealState = {
+  station: Station
+  variant: import('./experiences/noctra/noctraMoments').NoctraStationVariant
+  progress: number
+  required: number
+  rewards: string[]
+  continueTo: View
+}
 
 const ExperienceContext = createContext<ExperienceRuntime | null>(null)
 
@@ -53,6 +62,21 @@ function loadImageAsset(src: string) {
   })
 }
 
+function canvasToBlob(canvas: HTMLCanvasElement, type = 'image/jpeg', quality = .92) {
+  return new Promise<Blob>((resolve, reject) => {
+    canvas.toBlob((blob) => blob ? resolve(blob) : reject(new Error('No se pudo preparar la foto')), type, quality)
+  })
+}
+
+function blobToDataUrl(blob: Blob) {
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => typeof reader.result === 'string' ? resolve(reader.result) : reject(new Error('No se pudo preparar la foto final'))
+    reader.onerror = () => reject(reader.error ?? new Error('No se pudo leer la foto final'))
+    reader.readAsDataURL(blob)
+  })
+}
+
 function isCameraPermissionDenied(error: unknown) {
   return error instanceof DOMException && ['NotAllowedError', 'PermissionDeniedError'].includes(error.name)
 }
@@ -70,6 +94,12 @@ function scrollToDemoDisclosure() {
 function App({ experience }: { experience: ExperienceRuntime }) {
   const experienceRuntime = experience
   const experienceConfig = experience.config
+  const isNoctra = experienceConfig.id === 'noctra'
+  const [noctraEditionId] = useState(() => {
+    const requestedEdition = new URLSearchParams(window.location.search).get('edition')
+    return requestedEdition === 'night-02' || requestedEdition === 'sunset-special' ? requestedEdition : 'night-03'
+  })
+  const resetNoctraMomentsOnMount = useRef(isNoctra && new URLSearchParams(window.location.search).get('resetDemo') === 'true')
   const eventStation = requireStation(experienceRuntime.eventStation, 'una estación de evento')
   const secretStation = requireStation(experienceRuntime.secretStation, 'una secret station')
   const explorationStationIds = experienceRuntime.explorationStationIds
@@ -87,7 +117,11 @@ function App({ experience }: { experience: ExperienceRuntime }) {
   const [selectedOverlay, setSelectedOverlay] = useState(experienceRuntime.photoStudio.defaultFilterId)
   const [studioTab, setStudioTab] = useState('story')
   const [capturedPhoto, setCapturedPhoto] = useState<string | null>(null)
+  const [capturedPhotoBlob, setCapturedPhotoBlob] = useState<Blob | null>(null)
   const [capturedFilter, setCapturedFilter] = useState(experienceRuntime.photoStudio.defaultFilterId)
+  const [activeNoctraMomentId, setActiveNoctraMomentId] = useState<string | null>(null)
+  const [activeNoctraStationId, setActiveNoctraStationId] = useState<string | null>(null)
+  const [noctraReveal, setNoctraReveal] = useState<NoctraRevealState | null>(null)
   const [studioNotice, setStudioNotice] = useState<string | null>(null)
   const [newUnlockNoticePending, setNewUnlockNoticePending] = useState(false)
   const transitionTimer = useRef<number | undefined>(undefined)
@@ -100,7 +134,6 @@ function App({ experience }: { experience: ExperienceRuntime }) {
   const eventStations = experienceRuntime.eventStations
   const eventFoundCount = eventStations.filter((station) => isStationFound(station.id)).length
   const explorationFoundCount = explorationStationIds.filter((stationId) => isStationFound(stationId)).length
-  const isNoctra = experienceConfig.id === 'noctra'
   const engagementCount = getEngagementCount(experienceConfig, foundStations, engagementProgress)
   const finalRewardState = getFinalRewardState(experienceConfig, engagementProgress, foundStations)
   const progressMessage = finalRewardState === 'unlocked' && experienceConfig.engagement
@@ -153,6 +186,11 @@ function App({ experience }: { experience: ExperienceRuntime }) {
     }
   }, [isNoctra])
 
+  useEffect(() => {
+    if (!resetNoctraMomentsOnMount.current) return
+    void import('./experiences/noctra/noctraMoments').then(({ resetNoctraMoments }) => resetNoctraMoments())
+  }, [])
+
   if (vbTest) return <Suspense fallback={<main className="phone-screen" aria-label="Cargando prueba de cámara" />}><VirtualBackgroundTest experience={experience} /></Suspense>
 
   const showStudioNotice = (notice: string) => {
@@ -172,8 +210,39 @@ function App({ experience }: { experience: ExperienceRuntime }) {
     })
   }
 
-  const openStudio = (source: string) => {
+  const prepareNoctraMoment = async (stationId: string | null | undefined) => {
+    if (!isNoctra || !stationId) return null
+    const station = experienceRuntime.stationById[stationId]
+    if (!station) return null
+    const { createNoctraMomentDraft, getLatestNoctraMoment, getNoctraStationVariant, NOCTRA_EDITIONS, saveNoctraMoment } = await import('./experiences/noctra/noctraMoments')
+    const edition = NOCTRA_EDITIONS[noctraEditionId]
+    const variant = getNoctraStationVariant(station.id, edition)
+    const existing = await getLatestNoctraMoment(station.id, edition.id)
+    if (existing) {
+      setActiveNoctraMomentId(existing.id)
+      setActiveNoctraStationId(existing.stationId)
+      return existing.id
+    }
+    const record = createNoctraMomentDraft({
+      stationId: station.id,
+      stationName: variant.title,
+      editionId: edition.id,
+      editionLabel: edition.label,
+      eventDate: edition.eventDate,
+      variantId: variant.id,
+      kind: variant.kind,
+      badge: variant.badge,
+      reward: variant.reward,
+    })
+    setActiveNoctraMomentId(record.id)
+    setActiveNoctraStationId(record.stationId)
+    await saveNoctraMoment(record)
+    return record.id
+  }
+
+  const openStudio = (source: string, stationId = activeNoctraStationId || selectedStationId || experienceRuntime.photoStudio.defaultFilterId) => {
     trackExperienceEvent(!isNoctra, 'button_clicked', { action: 'photo_studio_opened', source })
+    if (isNoctra) void prepareNoctraMoment(stationId)
     if (newUnlockNoticePending) {
       setNewUnlockNoticePending(false)
       showStudioNotice(experienceConfig.content.photoStudio.newUnlockNotice)
@@ -181,7 +250,7 @@ function App({ experience }: { experience: ExperienceRuntime }) {
     go('studio')
   }
 
-  const completeStationDiscovery = (stationId: string) => {
+  const completeStationDiscovery = async (stationId: string) => {
     const station = experienceRuntime.stationById[stationId]
     if (!station || station.type === 'secret') return
 
@@ -190,9 +259,32 @@ function App({ experience }: { experience: ExperienceRuntime }) {
     const wasFound = isStationFound(station.id)
     const nextFoundStations = wasFound ? foundStations : { ...foundStations, [station.id]: true }
     const nextEngagementProgress = wasFound ? engagementProgress : applyStationEngagementUnlock(experienceConfig, engagementProgress, station.id)
+    const missionComplete = explorationStationIds.every((missionStationId) => nextFoundStations[missionStationId] === true)
+    const revealSecretAfterMoment = missionComplete && !secretRevealSeen && !secretStationFound
     if (!wasFound) {
       persistProgress(nextFoundStations, secretRevealSeen, nextEngagementProgress)
       const newRewards = getNewMicroRewards(experienceConfig, station.id, engagementProgress)
+      if (isNoctra) {
+        if (revealSecretAfterMoment) persistProgress(nextFoundStations, true, nextEngagementProgress)
+        const { getNoctraStationVariant, NOCTRA_EDITIONS } = await import('./experiences/noctra/noctraMoments')
+        const edition = NOCTRA_EDITIONS[noctraEditionId]
+        const variant = getNoctraStationVariant(station.id, edition)
+        await prepareNoctraMoment(station.id)
+        setNoctraReveal({
+          station,
+          variant,
+          progress: getEngagementCount(experienceConfig, nextFoundStations, nextEngagementProgress),
+          required: experienceConfig.engagement?.goal.requiredUnlocks ?? explorationStationIds.length,
+          rewards: newRewards.map((reward) => reward.title),
+          continueTo: revealSecretAfterMoment ? 'secret-reveal' : 'stations',
+        })
+        if (typeof navigator.vibrate === 'function') navigator.vibrate(18)
+        setSelectedStation(station)
+        setSelectedStationId(station.id)
+        if (station.id === eventStation.id) setNewUnlockNoticePending(true)
+        go('noctra-reveal')
+        return
+      }
       setUnlockFeedback({
         key: ++unlockFeedbackKey.current,
         stationName: station.name,
@@ -206,7 +298,6 @@ function App({ experience }: { experience: ExperienceRuntime }) {
     setSelectedStationId(station.id)
     if (station.id === eventStation.id && !wasFound) setNewUnlockNoticePending(true)
 
-    const missionComplete = explorationStationIds.every((missionStationId) => nextFoundStations[missionStationId] === true)
     if (missionComplete && !secretRevealSeen && !secretStationFound) {
       persistProgress(nextFoundStations, true, nextEngagementProgress)
       go('secret-reveal')
@@ -228,16 +319,29 @@ function App({ experience }: { experience: ExperienceRuntime }) {
     const nextFoundStations = { ...foundStations, [secretStation.id]: true }
     const nextEngagementProgress = applyStationEngagementUnlock(experienceConfig, engagementProgress, secretStation.id)
     persistProgress(nextFoundStations, true, nextEngagementProgress)
+    const newRewards = getNewMicroRewards(experienceConfig, secretStation.id, engagementProgress)
+    setSelectedStation(secretStation)
+    setSelectedStationId(secretStation.id)
+    trackExperienceEvent(!isNoctra, 'button_clicked', { action: 'station_opened', stationId: secretStation.id, stationName: secretStation.name, source: 'secret_unlock' })
+    if (isNoctra) {
+      void (async () => {
+        const { getNoctraStationVariant, NOCTRA_EDITIONS } = await import('./experiences/noctra/noctraMoments')
+        const edition = NOCTRA_EDITIONS[noctraEditionId]
+        const variant = getNoctraStationVariant(secretStation.id, edition)
+        await prepareNoctraMoment(secretStation.id)
+        setNoctraReveal({ station: secretStation, variant, progress: getEngagementCount(experienceConfig, nextFoundStations, nextEngagementProgress), required: experienceConfig.engagement?.goal.requiredUnlocks ?? explorationStationIds.length, rewards: newRewards.map((reward) => reward.title), continueTo: 'stations' })
+        if (typeof navigator.vibrate === 'function') navigator.vibrate([18, 12, 26])
+        go('noctra-reveal')
+      })()
+      return
+    }
     setUnlockFeedback({
       key: ++unlockFeedbackKey.current,
       stationName: secretStation.name,
       progress: getEngagementCount(experienceConfig, nextFoundStations, nextEngagementProgress),
       required: experienceConfig.engagement?.goal.requiredUnlocks ?? explorationStationIds.length,
-      rewards: getNewMicroRewards(experienceConfig, secretStation.id, engagementProgress),
+      rewards: newRewards,
     })
-    setSelectedStation(secretStation)
-    setSelectedStationId(secretStation.id)
-    trackExperienceEvent(!isNoctra, 'button_clicked', { action: 'station_opened', stationId: secretStation.id, stationName: secretStation.name, source: 'secret_unlock' })
     go('detail')
   }
   const resetDemo = () => {
@@ -249,7 +353,12 @@ function App({ experience }: { experience: ExperienceRuntime }) {
     setSelectedStation(eventStation)
     setSelectedStationId(null)
     setCapturedPhoto(null)
+    setCapturedPhotoBlob(null)
     setCapturedFilter(experienceRuntime.photoStudio.defaultFilterId)
+    setActiveNoctraMomentId(null)
+    setActiveNoctraStationId(null)
+    setNoctraReveal(null)
+    if (isNoctra) void import('./experiences/noctra/noctraMoments').then(({ resetNoctraMoments }) => resetNoctraMoments())
     setSelectedOverlay(experienceRuntime.photoStudio.defaultFilterId)
     setStudioTab('story')
     setStudioNotice(null)
@@ -316,21 +425,36 @@ function App({ experience }: { experience: ExperienceRuntime }) {
     : null
 
   const renderView = (screen: View) => {
+    if (isNoctra && screen === 'noctra-reveal' && noctraReveal) return <Suspense fallback={<main className="phone-screen" aria-label="Preparando momento" />}><NoctraExperienceUI mode="moment-reveal" stationName={noctraReveal.station.name} stationImage={noctraReveal.station.image} variant={noctraReveal.variant} editionId={noctraEditionId} progress={noctraReveal.progress} required={noctraReveal.required} rewards={noctraReveal.rewards} onCreate={() => { setSelectedOverlay(noctraReveal.station.id); void openStudio('moment_reveal', noctraReveal.station.id) }} onContinue={() => go(noctraReveal.continueTo)} /></Suspense>
+    if (isNoctra && screen === 'noctra-night') return <Suspense fallback={<main className="phone-screen" aria-label="Abriendo tu noche" />}><NoctraExperienceUI mode="night-recap" editionId={noctraEditionId} rewardState={finalRewardState ?? 'locked'} stationImages={Object.fromEntries(experienceRuntime.stations.map((station) => [station.id, station.image]))} fallbackImage={experienceConfig.heroImage} onBack={() => go('passport')} onDiscover={() => go('discover')} /></Suspense>
     if (isNoctra && screen === 'sponsor') return <NoctraSponsorActivation experience={experienceRuntime} onBack={() => go('stations')} onPassport={() => openPassport('nova_drop')} onContinue={() => go('stations')} />
     if (screen === 'reward' && experienceConfig.engagement?.enabled && finalRewardState) {
       const photoFilterId = experienceConfig.engagement.finalReward.photoStudioFilterId
       const canCreatePhoto = Boolean(photoFilterId && engagementProgress.unlockedPhotoFrameIds.includes(photoFilterId))
-      return <FinalRewardScreen experience={experienceRuntime} progressCount={engagementCount} state={finalRewardState} onBack={() => go('stations')} onClaim={claimFinalReward} onPhoto={canCreatePhoto && photoFilterId ? () => { setSelectedOverlay(photoFilterId); openStudio('final_reward') } : undefined} />
+      return <FinalRewardScreen experience={experienceRuntime} progressCount={engagementCount} state={finalRewardState} onBack={() => go('stations')} onClaim={claimFinalReward} onPhoto={canCreatePhoto && photoFilterId ? () => { setSelectedOverlay(photoFilterId); openStudio('final_reward', isNoctra ? photoFilterId : undefined) } : undefined} />
     }
-    if (screen === 'home') return <Home onStart={startExperience} onLearnMore={isNoctra ? scrollToDemoDisclosure : undefined} onCamera={() => go('discover')} onPassport={() => openPassport('home')} onMenu={() => go('menu')} />
+    if (screen === 'home') return <Home editionId={noctraEditionId} onStart={startExperience} onLearnMore={isNoctra ? scrollToDemoDisclosure : undefined} onCamera={() => go('discover')} onPassport={() => openPassport('home')} onMenu={() => go('menu')} />
     if (screen === 'discover') return <Discover allowDemoTapUnlock={experienceConfig.discovery?.allowDemoTapUnlock === true} demoStationId={getDemoDiscoveryStationId()} onClose={() => go('home')} onDetected={completeStationDiscovery} />
     if (screen === 'unlocked') return <Unlocked onBack={() => go('discover')} onDetails={() => openStation(eventStation)} onPhoto={() => openStudio('unlocked')} />
     if (screen === 'secret-reveal') return <SecretReveal onBack={() => go('stations')} onUnlock={unlockSecretStation} />
     if (screen === 'stations') return <Stations selectedStationId={selectedStationId} isStationFound={isStationFound} explorationFoundCount={explorationFoundCount} eventFoundCount={eventFoundCount} eventEditionTotal={eventStations.length} onCamera={() => go('discover')} onPassport={() => openPassport('stations')} onMenu={() => go('menu')} onOpen={openStation} />
-    if (screen === 'studio') return <PhotoStudio selectedOverlay={selectedOverlay} isStationFound={isStationFound} notice={studioNotice} tab={studioTab} onSelect={setSelectedOverlay} onCaptured={(photo, filter) => { setCapturedPhoto(photo); setCapturedFilter(filter) }} onLocked={() => showStudioNotice(experienceConfig.content.photoStudio.lockedNotice)} onTab={setStudioTab} onClose={() => go('stations')} onResult={() => go('share')} />
-    if (screen === 'share') return <ShareResult photoSrc={capturedPhoto || experienceConfig.cameraImage} filterId={capturedFilter} onClose={() => go('studio')} onEdit={() => go('studio')} />
-    if (screen === 'detail') return <StationDetail station={selectedStation} onBack={() => go('stations')} onPhoto={() => openStudio('station_detail')} />
-    if (screen === 'passport') return <Passport stationTotal={stationTotal} explorationFoundCount={explorationFoundCount} isStationFound={isStationFound} onExplore={() => go('stations')} onCamera={() => go('discover')} onMenu={() => go('menu')} />
+    if (screen === 'studio') return <PhotoStudio selectedOverlay={selectedOverlay} isStationFound={isStationFound} isNoctra={isNoctra} editionId={noctraEditionId} notice={studioNotice} tab={studioTab} onSelect={setSelectedOverlay} onCaptured={async (photo, filter, blob, source) => {
+      setCapturedPhoto(photo)
+      setCapturedPhotoBlob(blob ?? null)
+      setCapturedFilter(filter)
+      if (isNoctra && blob) {
+        const stationId = activeNoctraStationId || selectedStationId || filter
+        const momentId = activeNoctraMomentId && activeNoctraStationId === stationId ? activeNoctraMomentId : await prepareNoctraMoment(stationId)
+        if (momentId) {
+          const { attachNoctraMomentPhoto } = await import('./experiences/noctra/noctraMoments')
+          const saved = await attachNoctraMomentPhoto(momentId, blob, source ?? 'camera')
+          if (!saved) showStudioNotice('No pudimos guardar este momento en el dispositivo.')
+        }
+      }
+    }} onLocked={() => showStudioNotice(experienceConfig.content.photoStudio.lockedNotice)} onTab={setStudioTab} onClose={() => go('stations')} onResult={() => go('share')} />
+    if (screen === 'share') return <ShareResult photoSrc={capturedPhoto || experienceConfig.cameraImage} photoBlob={capturedPhotoBlob} filterId={capturedFilter} editionId={noctraEditionId} isNoctra={isNoctra} onClose={() => go('studio')} onEdit={() => go('studio')} />
+    if (screen === 'detail') return <StationDetail station={selectedStation} onBack={() => go('stations')} onPhoto={() => openStudio('station_detail', selectedStation.id)} />
+    if (screen === 'passport') return <Passport stationTotal={stationTotal} explorationFoundCount={explorationFoundCount} isStationFound={isStationFound} isNoctra={isNoctra} onOpenNight={() => go('noctra-night')} onExplore={() => go('stations')} onCamera={() => go('discover')} onMenu={() => go('menu')} />
     if (screen === 'upcoming') return <Upcoming onExplore={() => go('stations')} onCamera={() => go('discover')} onPassport={() => openPassport('upcoming')} onMenu={() => go('menu')} />
     return <Menu onClose={() => go('home')} onNavigate={navigateFromMenu} onReset={resetDemo} />
   }
@@ -374,7 +498,7 @@ function BottomNav({ active, onExplore, onCamera, onPassport }: { active: string
   return <nav className="bottom-nav"><button className={active === 'explore' ? 'active' : ''} onClick={onExplore}><Sparkles size={17} /><span>{navigation.explore}</span></button><button className={active === 'camera' ? 'active' : ''} onClick={onCamera}><Camera size={18} /><span>{navigation.camera}</span></button><button className={active === 'passport' ? 'active' : ''} onClick={onPassport}><Grid2X2 size={17} /><span>{navigation.passport}</span></button></nav>
 }
 
-function Home({ onStart, onLearnMore, onCamera, onPassport, onMenu }: { onStart: () => void; onLearnMore?: () => void; onCamera: () => void; onPassport: () => void; onMenu: () => void }) {
+function Home({ editionId, onStart, onLearnMore, onCamera, onPassport, onMenu }: { editionId: string; onStart: () => void; onLearnMore?: () => void; onCamera: () => void; onPassport: () => void; onMenu: () => void }) {
   const experienceConfig = useExperienceRuntime().config
   const content = experienceConfig.content.home
   const hasDemoDisclosure = Boolean(content.demoDisclosureTitle && content.demoDisclosureBody)
@@ -389,6 +513,7 @@ function Home({ onStart, onLearnMore, onCamera, onPassport, onMenu }: { onStart:
         {content.demoLabel && <span className="home-demo-mark">{content.demoLabel}</span>}
         <h1><ContentLines lines={content.titleLines} /></h1>
         <p>{experienceConfig.tagline}</p>
+        {experienceConfig.id === 'noctra' && <Suspense fallback={null}><NoctraExperienceUI mode="home-loop" editionId={editionId} /></Suspense>}
         <button className="cream-button" onClick={hasDemoDisclosure ? onLearnMore ?? onStart : onStart}>{content.startLabel} <ArrowRight size={18} /></button>
         <EngagementCard variant="home" />
         {!hasDemoDisclosure && <p className="home-demo-note"><strong>{content.demoNoteTitle}</strong> {content.demoNote}</p>}
@@ -639,9 +764,11 @@ function Stations({ selectedStationId, isStationFound, explorationFoundCount, ev
   const secretStationFound = isStationFound(secretStation.id)
   const engagement = useEngagementView()
   const secretHints = experienceConfig.engagement?.secretHints
-  const secretDetected = Boolean(secretHints && !secretStationFound && (engagement?.progressCount ?? explorationFoundCount) >= secretHints.showDetectedAfter)
-  const secretTitle = secretStationFound ? secretHints?.foundTitle || secretStation.name : secretDetected ? secretHints?.detectedTitle || secretStation.name : secretHints?.lockedTitle || '???'
-  const secretMessage = secretStationFound ? secretHints?.foundMessage || content.secretFoundLabel : secretDetected ? secretHints?.detectedMessage || content.secretLockedLabel : secretHints?.lockedMessage || content.secretLockedLabel
+  const secretProgress = engagement?.progressCount ?? explorationFoundCount
+  const secretNear = Boolean(secretHints?.showNearAfter && !secretStationFound && secretProgress >= secretHints.showNearAfter)
+  const secretDetected = Boolean(secretHints && !secretStationFound && !secretNear && secretProgress >= secretHints.showDetectedAfter)
+  const secretTitle = secretStationFound ? secretHints?.foundTitle || secretStation.name : secretNear ? secretHints?.nearTitle || secretStation.name : secretDetected ? secretHints?.detectedTitle || secretStation.name : secretHints?.lockedTitle || '???'
+  const secretMessage = secretStationFound ? secretHints?.foundMessage || content.secretFoundLabel : secretNear ? secretHints?.nearMessage || secretHints?.detectedMessage || content.secretLockedLabel : secretDetected ? secretHints?.detectedMessage || content.secretLockedLabel : secretHints?.lockedMessage || content.secretLockedLabel
   return <section className="phone-screen stations-screen"><Header page={content.headerSuffix} /><button className="top-menu-button" onClick={onMenu}><MenuIcon size={21} /></button><div className="stations-tabs">{[['all', content.tabs.all], ['permanent', content.tabs.permanent], ['special', content.tabs.special]].map(([id, label]) => <button key={id} className={activeTab === id ? 'selected' : ''} onClick={() => setActiveTab(id)}>{label}</button>)}</div><div className="stations-content"><ExplorationProgress foundCount={explorationFoundCount} /><div className="section-label"><span>{content.permanentLabel}</span><span>{(isNoctra ? permanentFoundCount : permanentStations.length).toString().padStart(2, '0')} / {permanentStations.length.toString().padStart(2, '0')}</span></div><div className="station-grid-ref">{permanentStations.map((station) => <StationTile key={station.id} station={station} selected={selectedStationId === station.id} locked={isNoctra && !isStationFound(station.id)} onOpen={onOpen} />)}</div><div className="section-label event-label"><span>{content.eventLabel}</span><span><span key={eventFoundCount} className="event-progress-count">{eventFoundCount.toString().padStart(2, '0')}</span> / {eventEditionTotal.toString().padStart(2, '0')}</span></div><button className={`event-strip ${eventStationFound ? '' : 'locked-event-strip'}`} disabled={!eventStationFound} aria-disabled={!eventStationFound} onClick={() => { if (isStationFound(eventStation.id)) onOpen(eventStation) }}><img className={eventStationFound ? undefined : 'locked-event-image'} src={eventStation.image} alt={eventStation.name} /><div><h3>{eventStation.name}</h3><p>{eventStationFound ? content.foundLabel : <><>{content.notFoundLabel}</><br />{content.eventAvailability}</>}</p></div>{eventStationFound && <ArrowRight size={20} />}</button><button className={`secret-strip ${secretStationFound ? 'secret-unlocked' : 'secret-locked'}`} disabled={!secretStationFound} aria-disabled={!secretStationFound} onClick={() => { if (secretStationFound) onOpen(secretStation) }}><div className="secret-blur" style={{ backgroundImage: `url(${secretStation.image})` }} /><div className="secret-strip__copy"><strong>{secretTitle}</strong><span>{secretMessage}</span></div>{secretStationFound && <ArrowRight size={18} />}</button><EngagementCard variant="stations" /></div><BottomNav active="explore" onExplore={() => undefined} onCamera={onCamera} onPassport={onPassport} /></section>
 }
 
@@ -651,7 +778,7 @@ function StationTile({ station, selected, locked = false, onOpen }: { station: S
   return <button className={`station-tile ${selected ? 'selected-station' : ''}${locked ? ' locked-station' : ''}`} aria-label={`${station.name}, ${locked ? content.notFoundLabel : content.foundLabel}`} onClick={() => onOpen(station)}><img src={station.image} alt="" /><div className="tile-shade" /><div className="tile-copy"><strong>{station.name}</strong><b>{numeral}</b><small>{locked ? content.notFoundLabel : content.foundLabel}<br />{station.count} {station.count === 1 ? content.tileTimesSingular : content.tileTimesPlural}</small></div></button>
 }
 
-function PhotoStudio({ selectedOverlay, isStationFound, notice, tab, onSelect, onCaptured, onLocked, onTab, onClose, onResult }: { selectedOverlay: string; isStationFound: (stationId: string) => boolean; notice: string | null; tab: string; onSelect: (id: string) => void; onCaptured: (photo: string, filter: string) => void; onLocked: () => void; onTab: (tab: string) => void; onClose: () => void; onResult: () => void }) {
+function PhotoStudio({ selectedOverlay, isStationFound, isNoctra, editionId, notice, tab, onSelect, onCaptured, onLocked, onTab, onClose, onResult }: { selectedOverlay: string; isStationFound: (stationId: string) => boolean; isNoctra: boolean; editionId: string; notice: string | null; tab: string; onSelect: (id: string) => void; onCaptured: (photo: string, filter: string, blob?: Blob, source?: 'camera' | 'selected' | 'demo') => void | Promise<void>; onLocked: () => void; onTab: (tab: string) => void; onClose: () => void; onResult: () => void }) {
   const experienceRuntime = useExperienceRuntime()
   const experienceConfig = experienceRuntime.config
   const engagement = useEngagementView()
@@ -672,6 +799,7 @@ function PhotoStudio({ selectedOverlay, isStationFound, notice, tab, onSelect, o
   const cameraDebug = import.meta.env.DEV && new URLSearchParams(window.location.search).get('cameraDebug') === 'true'
   const segDebug = import.meta.env.DEV && new URLSearchParams(window.location.search).get('segDebug') === 'true'
   const videoRef = useRef<HTMLVideoElement>(null)
+  const photoInputRef = useRef<HTMLInputElement>(null)
   const streamRef = useRef<MediaStream | null>(null)
   const mountedRef = useRef(true)
   const [photoDataUrl, setPhotoDataUrl] = useState<string | null>(null)
@@ -808,7 +936,7 @@ function PhotoStudio({ selectedOverlay, isStationFound, notice, tab, onSelect, o
     setDiagnosticRevision((revision) => revision + 1)
     if (video.videoWidth > 0 && video.videoHeight > 0 && !video.paused) {
       setCameraState('live')
-      void startSegmentationRef.current()
+      if (!isNoctra) void startSegmentationRef.current()
     }
   }
 
@@ -843,10 +971,16 @@ function PhotoStudio({ selectedOverlay, isStationFound, notice, tab, onSelect, o
     processingRef.current = false
     lastWebcamTimeRef.current = -1
     compositeCanvasRef.current?.getContext('2d')?.clearRect(0, 0, compositeCanvasRef.current.width, compositeCanvasRef.current.height)
+    const cameraFallbackTimer = window.setTimeout(() => {
+      if (!mountedRef.current || sessionId !== sessionIdRef.current) return
+      setCameraState(cameraDebug ? 'error' : 'fallback')
+      setCameraNotice('Cámara no disponible · Elegí una foto o usá la demo.')
+    }, 6000)
     if (!navigator.mediaDevices?.getUserMedia) {
+      window.clearTimeout(cameraFallbackTimer)
       setCameraState(cameraDebug ? 'error' : 'fallback')
       setCameraError('getUserMedia is not available')
-      setCameraNotice('No pudimos acceder a la cámara. Revisá los permisos del navegador e intentá nuevamente.')
+      setCameraNotice(isNoctra ? 'Cámara no disponible · Elegí una foto o usá la demo.' : 'No pudimos acceder a la cámara. Revisá los permisos del navegador e intentá nuevamente.')
       return
     }
     try {
@@ -859,6 +993,7 @@ function PhotoStudio({ selectedOverlay, isStationFound, notice, tab, onSelect, o
         },
         audio: false,
       })
+      window.clearTimeout(cameraFallbackTimer)
       trackExperienceEvent(experienceConfig.id !== 'noctra', 'camera_permission_granted', { source: 'photo_studio' })
       if (!mountedRef.current || sessionId !== sessionIdRef.current) {
         stream.getTracks().forEach((track) => track.stop())
@@ -869,12 +1004,13 @@ function PhotoStudio({ selectedOverlay, isStationFound, notice, tab, onSelect, o
       setCameraState('connecting')
       if (videoRef.current) await attachStreamToVideo(videoRef.current, stream, sessionId)
     } catch (error: unknown) {
+      window.clearTimeout(cameraFallbackTimer)
       stopCamera()
       if (isCameraPermissionDenied(error)) trackExperienceEvent(experienceConfig.id !== 'noctra', 'camera_permission_denied', { source: 'photo_studio' })
       setPermissionState(error instanceof DOMException && error.name === 'NotAllowedError' ? 'denied' : 'error')
       setCameraState(cameraDebug ? 'error' : 'fallback')
       setCameraError(error instanceof Error ? error.message : 'Unable to access camera')
-      setCameraNotice('No pudimos acceder a la cámara. Revisá los permisos del navegador e intentá nuevamente.')
+      setCameraNotice(isNoctra ? 'Cámara no disponible · Elegí una foto o usá la demo.' : 'No pudimos acceder a la cámara. Revisá los permisos del navegador e intentá nuevamente.')
     }
   }
 
@@ -1151,8 +1287,57 @@ function PhotoStudio({ selectedOverlay, isStationFound, notice, tab, onSelect, o
     cancelSegmentationLoop()
   }
 
+  const finishNoctraCapture = async (sourcePhoto: Blob, source: 'camera' | 'selected' | 'demo') => {
+    setCameraNotice('PREPARANDO TU MOMENTO…')
+    setCameraState('captured')
+    stopSegmentation()
+    stopCamera()
+    let segmentationMask: import('./experiences/noctra/noctraSegmentation').NoctraSegmentationMask | undefined
+    const device = navigator as Navigator & { deviceMemory?: number; connection?: { saveData?: boolean } }
+    const shouldSegment = typeof Worker !== 'undefined' && typeof createImageBitmap !== 'undefined' && device.deviceMemory !== undefined && device.deviceMemory > 2 && !device.connection?.saveData
+    if (shouldSegment) {
+      try {
+        const { segmentNoctraPhoto } = await import('./experiences/noctra/noctraSegmentation')
+        const { NOCTRA_MODEL_PATH, NOCTRA_WASM_PATH } = await import('./experiences/noctra/noctraPhoto')
+        segmentationMask = await segmentNoctraPhoto(sourcePhoto, NOCTRA_MODEL_PATH, NOCTRA_WASM_PATH)
+      } catch {
+        setCameraNotice('Seguimos con una composición estática para cuidar el dispositivo.')
+      }
+    } else {
+      setCameraNotice('Composición optimizada para este dispositivo.')
+    }
+
+    try {
+      const [{ renderNoctraPhoto }, { getNoctraStationVariant, NOCTRA_EDITIONS }] = await Promise.all([
+        import('./experiences/noctra/noctraPhoto'),
+        import('./experiences/noctra/noctraMoments'),
+      ])
+      const edition = NOCTRA_EDITIONS[editionId]
+      const variant = getNoctraStationVariant(selectedOverlay, edition)
+      const backgroundUrl = filterBackgrounds[selectedOverlay] || experienceConfig.cameraImage
+      const finalPhoto = await renderNoctraPhoto({ photo: sourcePhoto, backgroundUrl, variant, editionLabel: edition.label, dateLabel: edition.dateLabel, mask: segmentationMask })
+      const photoUrl = await blobToDataUrl(finalPhoto)
+      setPhotoDataUrl(photoUrl)
+      await onCaptured(photoUrl, selectedOverlay, finalPhoto, source)
+      setCameraState('captured')
+      onResult()
+    } catch {
+      setCameraState('fallback')
+      setCameraNotice('No pudimos preparar este momento. Elegí otra foto o usá la imagen de demo.')
+    }
+  }
+
   const capturePhoto = async () => {
     const video = videoRef.current
+    if (isNoctra && cameraState === 'fallback') {
+      try {
+        const sourcePhoto = await (await fetch(filterBackgrounds[selectedOverlay] || experienceConfig.cameraImage)).blob()
+        await finishNoctraCapture(sourcePhoto, 'demo')
+      } catch {
+        setCameraNotice('No pudimos preparar la imagen de demostración. Elegí una foto de tu dispositivo.')
+      }
+      return
+    }
     if (!video || cameraState !== 'live' || !video.videoWidth || !video.videoHeight) {
       setCameraNotice('Cámara todavía no lista.')
       return
@@ -1170,6 +1355,15 @@ function PhotoStudio({ selectedOverlay, isStationFound, notice, tab, onSelect, o
     rawCanvas.width = video.videoWidth
     rawCanvas.height = video.videoHeight
     rawCanvas.getContext('2d')?.drawImage(video, 0, 0, rawCanvas.width, rawCanvas.height)
+    if (isNoctra) {
+      try {
+        const sourcePhoto = await canvasToBlob(rawCanvas)
+        await finishNoctraCapture(sourcePhoto, 'camera')
+      } catch {
+        setCameraNotice('No pudimos preparar la foto. Podés elegir otra imagen del dispositivo.')
+      }
+      return
+    }
     const basePhoto = rawCanvas.toDataURL('image/jpeg', .92)
     const photo = compositeCanvas && hasCompositeFrameRef.current ? compositeCanvas.toDataURL('image/jpeg', .92) : await renderFilteredPhoto(basePhoto, selectedOverlay)
     setPhotoDataUrl(photo)
@@ -1181,6 +1375,17 @@ function PhotoStudio({ selectedOverlay, isStationFound, notice, tab, onSelect, o
     stopCamera()
     setCameraState('captured')
     onResult()
+  }
+
+  const handlePhotoSelection = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const photo = event.currentTarget.files?.[0]
+    event.currentTarget.value = ''
+    if (!photo || !isNoctra) return
+    if (!photo.type.startsWith('image/')) {
+      setCameraNotice('Elegí una imagen en formato JPG, PNG o HEIC.')
+      return
+    }
+    await finishNoctraCapture(photo, 'selected')
   }
 
   useEffect(() => {
@@ -1206,7 +1411,7 @@ function PhotoStudio({ selectedOverlay, isStationFound, notice, tab, onSelect, o
     onClose()
   }
   const showLiveCamera = cameraState === 'live' || cameraState === 'connecting'
-  const mediaSource = photoDataUrl || experienceConfig.cameraImage
+  const mediaSource = photoDataUrl || (isNoctra && cameraState === 'fallback' ? filterBackgrounds[selectedOverlay] || experienceConfig.cameraImage : experienceConfig.cameraImage)
   const visibleNotice = cameraNotice || notice
   const isEventFilter = selectedOverlay === eventStation.id
   const isSecretFilter = selectedOverlay === secretStation.id
@@ -1223,21 +1428,30 @@ function PhotoStudio({ selectedOverlay, isStationFound, notice, tab, onSelect, o
   const debugVideo = videoRef.current
   const diagnostics = <pre className="camera-debug-diagnostics">permission: {permissionState}{'\n'}stream.active: {String(debugStream?.active ?? false)}{'\n'}track.readyState: {debugTrack?.readyState ?? 'none'}{'\n'}track.label: {debugTrack?.label || 'none'}{'\n'}video.readyState: {debugVideo?.readyState ?? 0}{'\n'}video.paused: {String(debugVideo?.paused ?? true)}{'\n'}video.videoWidth: {debugVideo?.videoWidth ?? 0}{'\n'}video.videoHeight: {debugVideo?.videoHeight ?? 0}{'\n'}state: {cameraState}{cameraError ? `\nerror: ${cameraError}` : ''}</pre>
   if (cameraDebug) return <section className="phone-screen studio-screen camera-debug-screen"><header className="floating-header"><button className="icon-button" onClick={handleClose}><X size={21} /></button><span>Camera debug</span><span>{cameraState}</span></header><div className="camera-debug-media">{videoElement}</div>{diagnostics}</section>
-  return <section className={`phone-screen studio-screen ${hasCompositeFrame ? 'segmentation-live' : ''}`}><div className="studio-media">{showLiveCamera ? videoElement : <img className="studio-fallback-image" style={{ filter: mediaFilter }} src={mediaSource} alt="" />}<canvas ref={compositeCanvasRef} className="studio-composite-canvas" style={{ filter: compositeFilter }} aria-label="Vista compuesta de cámara" /></div><div className="photo-shade medium" /><header className="floating-header"><button className="icon-button" onClick={handleClose}><X size={21} /></button><Sparkles size={18} /></header>{!isEventFilter && !isSecretFilter && <div className="studio-copy"><h2>{content.title}</h2><p>{content.subtitle}</p></div>}{!isEventFilter && !isSecretFilter && <div key={selectedOverlay} className="studio-overlay" style={{ color: filterOverlayColors[selectedOverlay] }}><ContentLines lines={content.overlayLines} /></div>}{visibleNotice && <p className="studio-feedback">{visibleNotice}</p>}<div className="studio-options">{options.map((item) => { const locked = (item.id === eventStation.id && !isStationFound(item.id)) || isFrameLocked(item.id); return <button className={`${selectedOverlay === item.id ? 'active ' : ''}${locked ? 'locked-option' : ''}`} key={item.id} onClick={() => locked ? onLocked() : selectFilter(item.id)} aria-disabled={locked}><img src={item.image} alt={item.name} /><small>{item.name}</small></button> })}</div><div className="studio-controls"><button onClick={startCamera} aria-label={content.controls.repeatPhoto}><ImageIcon size={22} /><small>{content.controls.photo}</small></button><button className="shutter" onClick={capturePhoto} aria-label={content.controls.takePhoto} /><button disabled={!photoDataUrl} onClick={() => photoDataUrl && onResult()} aria-label={content.controls.publish}><MoreHorizontal size={18} /><small>{content.controls.publish}</small></button></div><div className="studio-tabs">{content.tabs.map((item) => <button className={tab === item ? 'active' : ''} onClick={() => onTab(item)} key={item}>{item}</button>)}</div>{segDebug && <div className="seg-debug-panel"><figure><canvas ref={debugVideoCanvasRef} /><figcaption>VIDEO ORIGINAL</figcaption></figure><figure><canvas ref={debugMaskCanvasRef} /><figcaption>PERSON CUTOUT</figcaption></figure><figure><canvas ref={debugCompositeCanvasRef} /><figcaption>COMPOSITE FINAL</figcaption></figure></div>}</section>
+  return <section className={`phone-screen studio-screen ${hasCompositeFrame ? 'segmentation-live' : ''}${isNoctra ? ' noctra-studio' : ''}`}><div className="studio-media">{showLiveCamera ? videoElement : <img className="studio-fallback-image" style={{ filter: mediaFilter }} src={mediaSource} alt="" />}<canvas ref={compositeCanvasRef} className="studio-composite-canvas" style={{ filter: compositeFilter }} aria-label="Vista compuesta de cámara" /></div>{isNoctra && <Suspense fallback={null}><NoctraExperienceUI mode="photo-effects" stationId={selectedOverlay} editionId={editionId} /></Suspense>}<div className="photo-shade medium" /><header className="floating-header"><button className="icon-button" onClick={handleClose}><X size={21} /></button><Sparkles size={18} /></header>{!isEventFilter && !isSecretFilter && <div className="studio-copy"><h2>{content.title}</h2><p>{content.subtitle}</p></div>}{!isEventFilter && !isSecretFilter && <div key={selectedOverlay} className="studio-overlay" style={{ color: filterOverlayColors[selectedOverlay] }}><ContentLines lines={content.overlayLines} /></div>}{visibleNotice && <p className="studio-feedback">{visibleNotice}</p>}{isNoctra && <input ref={photoInputRef} className="noctra-photo-input" type="file" accept="image/*" onChange={handlePhotoSelection} aria-label="Elegir una foto de tu dispositivo" />}<div className="studio-options">{options.map((item) => { const locked = (item.id === eventStation.id && !isStationFound(item.id)) || isFrameLocked(item.id); return <button className={`${selectedOverlay === item.id ? 'active ' : ''}${locked ? 'locked-option' : ''}`} key={item.id} onClick={() => locked ? onLocked() : selectFilter(item.id)} aria-disabled={locked}><img src={item.image} alt={item.name} /><small>{item.name}</small></button> })}</div><div className="studio-controls"><button onClick={() => isNoctra ? photoInputRef.current?.click() : startCamera()} aria-label={isNoctra ? 'Elegir foto de tu dispositivo' : content.controls.repeatPhoto}><ImageIcon size={22} /><small>{isNoctra ? 'Elegir' : content.controls.photo}</small></button><button className="shutter" onClick={capturePhoto} aria-label={isNoctra && cameraState === 'fallback' ? 'Usar imagen de demostración' : content.controls.takePhoto} /><button disabled={!photoDataUrl} onClick={() => photoDataUrl && onResult()} aria-label={content.controls.publish}><MoreHorizontal size={18} /><small>{content.controls.publish}</small></button></div><div className="studio-tabs">{content.tabs.map((item) => <button className={tab === item ? 'active' : ''} onClick={() => onTab(item)} key={item}>{item}</button>)}</div>{segDebug && <div className="seg-debug-panel"><figure><canvas ref={debugVideoCanvasRef} /><figcaption>VIDEO ORIGINAL</figcaption></figure><figure><canvas ref={debugMaskCanvasRef} /><figcaption>PERSON CUTOUT</figcaption></figure><figure><canvas ref={debugCompositeCanvasRef} /><figcaption>COMPOSITE FINAL</figcaption></figure></div>}</section>
 }
 
-function ShareResult({ photoSrc, filterId, onClose, onEdit }: { photoSrc: string; filterId: string; onClose: () => void; onEdit: () => void }) {
+function ShareResult({ photoSrc, photoBlob, filterId, editionId, isNoctra, onClose, onEdit }: { photoSrc: string; photoBlob: Blob | null; filterId: string; editionId: string; isNoctra: boolean; onClose: () => void; onEdit: () => void }) {
   const experienceRuntime = useExperienceRuntime()
   const experienceConfig = experienceRuntime.config
   const sharing = experienceConfig.content.sharing
   const eventStation = requireStation(experienceRuntime.eventStation, 'una estación de evento')
-  const isNoctra = experienceConfig.id === 'noctra'
   const filename = `${sharing.filenamePrefix}-${filterId}.jpg`
   const isEventFilter = filterId === eventStation.id
   const resultName = filterId === experienceRuntime.photoStudio.defaultFilterId ? experienceConfig.name : experienceRuntime.stationById[filterId]?.name || experienceConfig.name
+  const [clipBlob, setClipBlob] = useState<Blob | null>(null)
+  const [clipUrl, setClipUrl] = useState<string | null>(null)
+  const [clipNotice, setClipNotice] = useState<string | null>(null)
+  const [clipBusy, setClipBusy] = useState(false)
+  const [clipSupported, setClipSupported] = useState(false)
   useEffect(() => {
     trackExperienceEvent(!isNoctra, 'experience_finished', { filterId, source: 'photo_studio' })
   }, [filterId])
+  useEffect(() => {
+    if (!isNoctra) return
+    void import('./experiences/noctra/noctraPhoto').then(({ canCreateNoctraClip }) => setClipSupported(canCreateNoctraClip()))
+  }, [isNoctra])
+  useEffect(() => () => { if (clipUrl) URL.revokeObjectURL(clipUrl) }, [clipUrl])
   const downloadPhoto = async () => {
     const blob = await (await fetch(photoSrc)).blob()
     const url = URL.createObjectURL(blob)
@@ -1265,7 +1479,52 @@ function ShareResult({ photoSrc, filterId, onClose, onEdit }: { photoSrc: string
     }
     await downloadPhoto()
   }
-  return <section className="phone-screen share-screen" style={{ backgroundImage: `url(${photoSrc})` }}><div className="photo-shade medium" /><header className="floating-header"><button className="icon-button" onClick={onClose}><X size={21} /></button><Sparkles size={18} /></header><div className="share-card"><div className="share-art"><img src={photoSrc} alt={sharing.imageAlt} />{!isEventFilter && <span><ContentLines lines={experienceConfig.content.photoStudio.overlayLines} /></span>}<strong>{resultName}</strong><small>{experienceConfig.eventDate} · {experienceConfig.location}</small></div><div className="share-actions"><button onClick={() => { void sharePhoto('instagram') }}><Share2 size={18} /><ContentLines lines={sharing.instagramLines} /></button><button onClick={downloadPhoto}><ArrowRight size={18} /><ContentLines lines={sharing.downloadLines} /></button><button onClick={() => { void sharePhoto('other_networks') }}><MoreHorizontal size={18} /><ContentLines lines={sharing.otherNetworksLines} /></button></div></div><a className="corsteno-credit" href="https://corsteno.com" target="_blank" rel="noreferrer">{sharing.creditLabel}</a><button className="back-edit" onClick={onEdit}><ArrowLeft size={16} /> {sharing.editLabel}</button></section>
+  const createClip = async () => {
+    if (!isNoctra) return
+    setClipBusy(true)
+    setClipNotice('ARMANDO UN CLIP DE 3 SEGUNDOS…')
+    try {
+      const photo = photoBlob || await (await fetch(photoSrc)).blob()
+      const [{ createNoctraClip }, { getNoctraStationVariant, NOCTRA_EDITIONS }] = await Promise.all([
+        import('./experiences/noctra/noctraPhoto'),
+        import('./experiences/noctra/noctraMoments'),
+      ])
+      const variant = getNoctraStationVariant(filterId, NOCTRA_EDITIONS[editionId])
+      const video = await createNoctraClip(photo, variant.effect)
+      if (clipUrl) URL.revokeObjectURL(clipUrl)
+      setClipBlob(video)
+      setClipUrl(URL.createObjectURL(video))
+      setClipNotice('CLIP LISTO · SIN SONIDO · 3 SEGUNDOS')
+    } catch {
+      setClipNotice('ESTE NAVEGADOR NO PUDO EXPORTAR VIDEO. TU FOTO SIGUE GUARDADA.')
+    } finally {
+      setClipBusy(false)
+    }
+  }
+  const saveClip = () => {
+    if (!clipBlob) return
+    const url = URL.createObjectURL(clipBlob)
+    const anchor = document.createElement('a')
+    anchor.href = url
+    anchor.download = `${sharing.filenamePrefix}-${filterId}.${clipBlob.type.includes('mp4') ? 'mp4' : 'webm'}`
+    anchor.click()
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000)
+  }
+  const shareClip = async () => {
+    if (!clipBlob) return
+    const extension = clipBlob.type.includes('mp4') ? 'mp4' : 'webm'
+    const file = new File([clipBlob], `${sharing.filenamePrefix}-${filterId}.${extension}`, { type: clipBlob.type })
+    try {
+      if (navigator.share && navigator.canShare?.({ files: [file] })) {
+        await navigator.share({ files: [file], title: `${sharing.navigatorTitle} · Clip` })
+        return
+      }
+    } catch (error: unknown) {
+      if (error instanceof DOMException && error.name === 'AbortError') return
+    }
+    saveClip()
+  }
+  return <section className="phone-screen share-screen" style={{ backgroundImage: `url(${photoSrc})` }}><div className="photo-shade medium" /><header className="floating-header"><button className="icon-button" onClick={onClose}><X size={21} /></button><Sparkles size={18} /></header><div className="share-card"><div className="share-art"><img src={photoSrc} alt={sharing.imageAlt} />{!isEventFilter && <span><ContentLines lines={experienceConfig.content.photoStudio.overlayLines} /></span>}<strong>{resultName}</strong><small>{experienceConfig.eventDate} · {experienceConfig.location}</small></div><div className="share-actions"><button onClick={() => { void sharePhoto('instagram') }}><Share2 size={18} /><ContentLines lines={sharing.instagramLines} /></button><button onClick={downloadPhoto}><ArrowRight size={18} /><ContentLines lines={sharing.downloadLines} /></button><button onClick={() => { void sharePhoto('other_networks') }}><MoreHorizontal size={18} /><ContentLines lines={sharing.otherNetworksLines} /></button></div></div>{isNoctra && <div className="noctra-clip-tools"><p>UNA NOCHE EN MOVIMIENTO · SIN SONIDO</p>{clipSupported ? <button className="noctra-clip-tools__primary" disabled={clipBusy} onClick={() => { void createClip() }}>{clipBusy ? 'PREPARANDO…' : clipBlob ? 'CREAR OTRO CLIP · 3S' : 'CREAR CLIP · 3S'} <ArrowRight size={15} /></button> : <small>LA EXPORTACIÓN DE VIDEO NO ESTÁ DISPONIBLE EN ESTE NAVEGADOR.</small>}{clipNotice && <span role="status">{clipNotice}</span>}{clipBlob && <div className="noctra-clip-tools__secondary"><button onClick={saveClip}>GUARDAR CLIP</button><button onClick={() => { void shareClip() }}>COMPARTIR</button></div>}{clipUrl && <video className="noctra-clip-preview" src={clipUrl} controls playsInline muted aria-label="Vista previa del clip de NOCTRA" />}</div>}<a className="corsteno-credit" href="https://corsteno.com" target="_blank" rel="noreferrer">{sharing.creditLabel}</a><button className="back-edit" onClick={onEdit}><ArrowLeft size={16} /> {sharing.editLabel}</button></section>
 }
 
 function StationDetail({ station, onBack, onPhoto }: { station: Station; onBack: () => void; onPhoto: () => void }) {
@@ -1276,7 +1535,7 @@ function StationDetail({ station, onBack, onPhoto }: { station: Station; onBack:
   return <section className="phone-screen detail-screen"><Header page={content.page} onBack={onBack} /><div className="detail-hero" style={{ backgroundImage: `url(${station.image})` }}><div className="detail-hero-image" style={{ backgroundImage: `url(${station.image})` }} /><span>{content.brandLabel}</span><strong>{station.name}</strong><small>{content.subtitle}</small></div><div className="detail-text"><p>{station.description} {content.descriptionSuffix}</p><div className="detail-thumbs">{permanentStations.slice(0, 3).map((item) => <img key={item.id} src={item.image} alt={item.name} />)}</div><button className="cream-button" onClick={onPhoto}>{content.usePhotoLabel} <ArrowRight size={18} /></button></div></section>
 }
 
-function Passport({ stationTotal, explorationFoundCount, isStationFound, onExplore, onCamera, onMenu }: { stationTotal: number; explorationFoundCount: number; isStationFound: (stationId: string) => boolean; onExplore: () => void; onCamera: () => void; onMenu: () => void }) {
+function Passport({ stationTotal, explorationFoundCount, isStationFound, isNoctra, onOpenNight, onExplore, onCamera, onMenu }: { stationTotal: number; explorationFoundCount: number; isStationFound: (stationId: string) => boolean; isNoctra: boolean; onOpenNight: () => void; onExplore: () => void; onCamera: () => void; onMenu: () => void }) {
   const experienceRuntime = useExperienceRuntime()
   const experienceConfig = experienceRuntime.config
   const content = experienceConfig.content.passport
@@ -1284,14 +1543,20 @@ function Passport({ stationTotal, explorationFoundCount, isStationFound, onExplo
   const secretStation = requireStation(experienceRuntime.secretStation, 'una secret station')
   const engagement = useEngagementView()
   const secretHints = experienceConfig.engagement?.secretHints
-  const secretDetected = Boolean(secretHints && !isStationFound(secretStation.id) && (engagement?.progressCount ?? explorationFoundCount) >= secretHints.showDetectedAfter)
+  const secretProgress = engagement?.progressCount ?? explorationFoundCount
+  const secretNear = Boolean(secretHints?.showNearAfter && !isStationFound(secretStation.id) && secretProgress >= secretHints.showNearAfter)
+  const secretDetected = Boolean(secretHints && !isStationFound(secretStation.id) && !secretNear && secretProgress >= secretHints.showDetectedAfter)
   const secretTitle = isStationFound(secretStation.id)
     ? secretHints?.foundTitle || secretStation.name
+    : secretNear
+      ? secretHints?.nearTitle || secretStation.name
     : secretDetected
       ? secretHints?.detectedTitle || secretStation.name
       : secretHints?.lockedTitle || '???'
   const secretMessage = isStationFound(secretStation.id)
     ? secretHints?.foundMessage || content.secretFoundStatus
+    : secretNear
+      ? secretHints?.nearMessage || secretHints?.detectedMessage || content.secretLockedStatus
     : secretDetected
       ? secretHints?.detectedMessage || content.secretLockedStatus
       : secretHints?.lockedMessage || content.secretLockedStatus
@@ -1319,6 +1584,7 @@ function Passport({ stationTotal, explorationFoundCount, isStationFound, onExplo
           : locked ? content.notFoundStatus : item.date
       return <div className={`history-row ${locked ? 'locked-history-row' : ''}`} key={item.stationId}><img src={item.image} alt="" /><span>{label}</span><small>{status}</small></div>
     })}</div>
+    {isNoctra && <Suspense fallback={<div className="noctra-moments-section" aria-label="Cargando tus momentos" />}><NoctraExperienceUI mode="passport-moments" stationImages={Object.fromEntries(experienceRuntime.stations.map((station) => [station.id, station.image]))} onOpenNight={onOpenNight} onDiscover={onCamera} /></Suspense>}
     <p className="passport-copy"><ContentLines lines={content.closingLines} /></p>
     <BottomNav active="passport" onExplore={onExplore} onCamera={onCamera} onPassport={() => undefined} />
   </section>
