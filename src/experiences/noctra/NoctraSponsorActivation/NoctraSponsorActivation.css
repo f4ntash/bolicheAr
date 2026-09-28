@@ -13,6 +13,8 @@
 .noctra-sponsor__content h1 { margin: 0; font-family: Georgia, 'Times New Roman', serif; font-size: clamp(58px, 15vw, 92px); font-weight: 400; letter-spacing: -.07em; line-height: .82; }
 .noctra-sponsor__content h1 em { color: #e0b19d; font-weight: 400; }
 .noctra-sponsor__intro { margin: 16px 0 0; color: rgba(243,238,231,.65); font-size: 11px; }
+.noctra-sponsor__availability { display:flex; margin:12px 0 -8px; align-items:center; gap:8px; color:rgba(243,238,231,.62); font-size:7px; letter-spacing:.1em; text-transform:uppercase; }
+.noctra-sponsor__availability strong { color:#e9b49e; font-weight:600; }
 .noctra-sponsor__reveal { position: relative; display: flex; width: min(100%, 420px); min-height: 184px; margin: 19px 0 10px; align-items: center; justify-content: center; flex-direction: column; gap: 9px; overflow: hidden; border: 0; background: transparent; }
 .noctra-sponsor__reveal::before, .noctra-sponsor__reveal::after { display: none; }
 .noctra-sponsor__reveal.is-revealing { filter: brightness(1.32); }

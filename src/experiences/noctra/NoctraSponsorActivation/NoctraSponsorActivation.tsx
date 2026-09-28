@@ -23,6 +23,7 @@ export default function NoctraSponsorActivation({ experience, onBack, onPassport
   const [isRevealing, setIsRevealing] = useState(false)
   const timerRef = useRef<number | undefined>(undefined)
   useEffect(() => () => { if (timerRef.current) window.clearTimeout(timerRef.current) }, [])
+  const activeDrop = experience.config.engagement?.drop
   const revealDrop = () => {
     if (isRevealing) return
     setIsRevealing(true)
@@ -43,6 +44,7 @@ export default function NoctraSponsorActivation({ experience, onBack, onPassport
       <p className="noctra-eyebrow">UNA ACTIVACIÓN EXCLUSIVA <span /></p>
       <h1>NOVA<br /><em>Drop.</em></h1>
       <p className="noctra-sponsor__intro">La pista se detiene. La luz te encuentra.</p>
+      {activeDrop && <p className="noctra-sponsor__availability"><strong>{activeDrop.title}</strong><span>{activeDrop.description}</span></p>}
       <div className={`noctra-sponsor__reveal ${isRevealing ? 'is-revealing' : ''} ${drop ? 'is-open' : ''}`} aria-live="polite">
         {drop ? <><span className="noctra-sponsor__drop-label"><Gift size={14} /> {drop.eyebrow}</span><strong>{drop.title}</strong><small>{drop.benefit} · DEMO CONCEPTUAL</small></> : <><span className="noctra-sponsor__orb"><i /><i /><i /></span><small>{isRevealing ? 'BUSCANDO TU DROP…' : 'TU ACTIVACIÓN TE ESPERA'}</small></>}
       </div>

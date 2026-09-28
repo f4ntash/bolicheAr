@@ -1,0 +1,68 @@
+.engagement-card { color: var(--experience-fg, #f6f2eb); border-top: 1px solid var(--experience-border-subtle, rgba(246,242,235,.16)); }
+.engagement-card__heading,.engagement-card__reward { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+.engagement-card__heading { color: color-mix(in srgb, var(--experience-fg, #f6f2eb) 65%, transparent); font-size:7px; letter-spacing:.14em; text-transform:uppercase; }
+.engagement-card__reward { margin-top:5px; }
+.engagement-card__reward strong { font-family:Georgia,serif; font-size:16px; font-weight:400; }
+.engagement-card__reward small { color:var(--experience-accent,#e8c584); font-size:6px; letter-spacing:.12em; text-align:right; }
+.engagement-card__bar { height:2px; margin-top:7px; overflow:hidden; background:var(--experience-border-subtle,rgba(246,242,235,.16)); }
+.engagement-card__bar span { display:block; height:100%; background:var(--experience-accent,#e8c584); transition:width 280ms ease; }
+.engagement-card > p { margin:6px 0 0; color:color-mix(in srgb,var(--experience-fg,#f6f2eb) 72%,transparent); font-family:Georgia,serif; font-size:10px; line-height:1.35; }
+.engagement-card__action { display:inline-flex; align-items:center; gap:6px; margin-top:7px; padding:0; border:0; background:transparent; color:var(--experience-fg,#f6f2eb); font-size:7px; letter-spacing:.1em; text-transform:uppercase; cursor:pointer; }
+.engagement-card--home { margin-top:9px; padding-top:7px; }
+.engagement-card--home .engagement-card__reward strong { font-size:14px; }
+.engagement-card--home > p { max-width:320px; font-size:9px; }
+.engagement-card--passport,.engagement-card--stations { margin:12px 20px 16px; padding:11px 12px 12px; border:1px solid var(--experience-border-subtle,rgba(246,242,235,.16)); border-radius:var(--experience-card-radius,4px); background:color-mix(in srgb,var(--experience-screen-bg,#090d0f) 82%,transparent); }
+.engagement-card--stations { margin-right:0; margin-left:0; }
+.engagement-card__micro-rewards { margin-top:10px; padding-top:8px; border-top:1px solid var(--experience-border-subtle,rgba(246,242,235,.16)); }
+.engagement-card__micro-rewards > span { color:color-mix(in srgb,var(--experience-fg,#f6f2eb) 58%,transparent); font-size:6px; letter-spacing:.13em; }
+.engagement-card__micro-rewards ul { display:grid; gap:6px; margin:7px 0 0; padding:0; list-style:none; }
+.engagement-card__micro-rewards li { display:flex; align-items:center; gap:6px; color:var(--experience-fg,#f6f2eb); font-size:8px; }
+.engagement-card__micro-rewards li svg { color:var(--experience-accent,#e8c584); flex:0 0 auto; }
+.secret-strip__copy { position:relative; z-index:2; display:grid; min-width:0; flex:1; gap:3px; }
+.secret-strip__copy strong { font-family:Georgia,serif; font-size:11px; font-weight:400; letter-spacing:.05em; }
+.secret-strip__copy span { margin:0; font-size:7px; line-height:1.35; }
+
+.engagement-feedback-anchor { position:fixed; z-index:100; right:0; bottom:max(12px,calc(env(safe-area-inset-bottom,0px) + 10px)); left:0; display:flex; justify-content:center; padding:0 12px; pointer-events:none; }
+.app-shell:has(.bottom-nav) .engagement-feedback-anchor { bottom:max(72px,calc(env(safe-area-inset-bottom,0px) + 68px)); }
+.app-shell:has(.unlocked-screen) .engagement-feedback-anchor,.app-shell:has(.secret-reveal-screen) .engagement-feedback-anchor { bottom:max(190px,calc(env(safe-area-inset-bottom,0px) + 180px)); }
+.engagement-feedback { width:min(100%,390px); padding:12px 14px 11px; border:1px solid var(--experience-border-strong,rgba(246,242,235,.32)); border-radius:var(--experience-card-radius,4px); background:color-mix(in srgb,var(--experience-screen-bg,#090d0f) 94%,transparent); box-shadow:0 12px 35px rgba(0,0,0,.35); color:var(--experience-fg,#f6f2eb); pointer-events:auto; backdrop-filter:blur(14px); animation:engagement-feedback-in 220ms ease-out both; }
+.engagement-feedback__top { display:flex; justify-content:space-between; gap:10px; color:var(--experience-accent,#e8c584); font-size:7px; letter-spacing:.13em; text-transform:uppercase; }
+.engagement-feedback > strong { display:block; margin-top:5px; font-family:Georgia,serif; font-size:19px; font-weight:400; }
+.engagement-feedback > p { margin:5px 0 8px; color:color-mix(in srgb,var(--experience-fg,#f6f2eb) 76%,transparent); font-size:9px; line-height:1.4; }
+.engagement-feedback > button { display:inline-flex; align-items:center; gap:5px; padding:0; border:0; background:transparent; color:var(--experience-fg,#f6f2eb); font-size:7px; letter-spacing:.1em; text-transform:uppercase; cursor:pointer; }
+
+.engagement-reward-screen { position:relative; display:flex; min-height:100dvh; height:100dvh; overflow:hidden; flex-direction:column; background:var(--experience-bg,#070809); color:var(--experience-fg,#f6f2eb); }
+.engagement-reward-screen__art,.engagement-reward-screen__shade { position:absolute; inset:0; pointer-events:none; }
+.engagement-reward-screen__art { background-position:center; background-size:cover; filter:saturate(.78); opacity:.52; }
+.engagement-reward-screen__shade { background:linear-gradient(180deg,rgba(4,5,6,.35),rgba(4,5,6,.55) 34%,var(--experience-bg,#070809) 100%); }
+.engagement-reward-screen__header { position:relative; z-index:2; display:flex; height:56px; padding:0 15px; align-items:center; justify-content:space-between; border-bottom:1px solid var(--experience-border-subtle,rgba(246,242,235,.16)); font-size:8px; letter-spacing:.12em; text-transform:uppercase; }
+.engagement-reward-screen__header > span:last-child { color:color-mix(in srgb,var(--experience-fg,#f6f2eb) 62%,transparent); font-size:7px; }
+.engagement-reward-screen__content { position:relative; z-index:2; display:flex; width:min(100%,520px); margin:auto; padding:22px 22px calc(24px + env(safe-area-inset-bottom,0px)); align-items:center; flex-direction:column; text-align:center; }
+.engagement-reward-screen__eyebrow { margin:0 0 6px; color:var(--experience-accent,#e8c584); font-size:7px; letter-spacing:.16em; }
+.engagement-reward-screen__badge { position:relative; display:grid; width:66px; aspect-ratio:1; margin:6px 0 12px; place-items:center; border:1px solid var(--experience-border-strong,rgba(246,242,235,.3)); border-radius:50%; color:var(--experience-accent,#e8c584); }
+.engagement-reward-screen__badge::before { position:absolute; inset:7px; border:1px solid var(--experience-border-subtle,rgba(246,242,235,.16)); border-radius:50%; content:''; }
+.engagement-reward-screen__badge span { position:absolute; right:-2px; bottom:2px; display:grid; width:21px; height:21px; place-items:center; border:1px solid var(--experience-bg,#070809); border-radius:50%; background:var(--experience-accent,#e8c584); color:var(--experience-bg,#070809); }
+.engagement-reward-screen__content h1 { margin:0; font-family:Georgia,serif; font-size:clamp(37px,10vw,62px); font-weight:400; letter-spacing:-.045em; line-height:.98; }
+.engagement-reward-screen__description { max-width:345px; margin:9px 0 15px; color:color-mix(in srgb,var(--experience-fg,#f6f2eb) 76%,transparent); font-size:10px; line-height:1.45; }
+.engagement-reward-screen__pass { position:relative; display:flex; width:min(100%,390px); min-height:98px; margin-bottom:14px; padding:12px 13px; align-items:flex-start; flex-direction:column; gap:7px; overflow:hidden; border:1px solid var(--experience-border-strong,rgba(246,242,235,.32)); border-radius:var(--experience-card-radius,4px); background:color-mix(in srgb,var(--experience-screen-bg,#090d0f) 82%,transparent); text-align:left; backdrop-filter:blur(10px); }
+.engagement-reward-screen__pass div { display:flex; width:100%; justify-content:space-between; gap:10px; color:color-mix(in srgb,var(--experience-fg,#f6f2eb) 60%,transparent); font-size:6px; letter-spacing:.1em; text-transform:uppercase; }
+.engagement-reward-screen__pass strong { font-family:Georgia,serif; font-size:21px; font-weight:400; }
+.engagement-reward-screen__pass > span { color:color-mix(in srgb,var(--experience-fg,#f6f2eb) 66%,transparent); font-size:7px; letter-spacing:.06em; }
+.engagement-reward-screen__pass i { position:absolute; right:14px; bottom:13px; width:41px; height:23px; opacity:.4; background:repeating-linear-gradient(90deg,var(--experience-fg,#f6f2eb) 0 1px,transparent 1px 3px,var(--experience-fg,#f6f2eb) 3px 5px,transparent 5px 7px); }
+.engagement-reward-screen__primary,.engagement-reward-screen__secondary { display:flex; width:min(100%,390px); min-height:43px; padding:0 13px; align-items:center; justify-content:center; gap:8px; border:1px solid var(--experience-border-strong,rgba(246,242,235,.32)); border-radius:var(--experience-card-radius,4px); background:var(--experience-button-bg,#f6f2eb); color:var(--experience-button-fg,#121617); font-size:8px; letter-spacing:.09em; text-transform:uppercase; cursor:pointer; }
+.engagement-reward-screen__secondary { background:transparent; color:var(--experience-fg,#f6f2eb); }
+.engagement-reward-screen__disclaimer { margin-top:10px; color:color-mix(in srgb,var(--experience-fg,#f6f2eb) 55%,transparent); font-size:7px; }
+
+@keyframes engagement-feedback-in { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+@media (min-width:600px) { .engagement-reward-screen { width:390px; min-height:844px; height:844px; max-height:none; border:1px solid var(--experience-border,rgba(246,242,235,.23)); border-radius:28px; box-shadow:0 20px 80px rgba(0,0,0,.5); } }
+@media (max-height:880px) {
+  .engagement-feedback { padding:4px 10px 3px; }
+  .engagement-feedback__top { font-size:6px; }
+  .engagement-feedback > strong { margin-top:2px; font-size:15px; }
+  .engagement-feedback > p { margin:2px 0 3px; font-size:7.5px; line-height:1.1; }
+  .engagement-feedback > button { min-height:16px; font-size:6px; }
+  .app-shell:not(:has(.bottom-nav)) .engagement-feedback-anchor { bottom:0; }
+  .app-shell:has(.unlocked-screen) .engagement-feedback-anchor { bottom:145px; }
+  .app-shell:has(.secret-reveal-screen) .engagement-feedback-anchor { bottom:94px; }
+}
+@media (prefers-reduced-motion:reduce) { .engagement-card__bar span { transition:none; }.engagement-feedback { animation:none; } }

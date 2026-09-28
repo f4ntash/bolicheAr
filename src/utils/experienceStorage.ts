@@ -1,4 +1,4 @@
-import type { ExperienceConfig, ExperienceRuntime } from '../types'
+import type { EngagementProgress, ExperienceConfig, ExperienceRuntime } from '../types'
 
 const STORAGE_NAMESPACE = 'corsteno-stations:v1'
 const RESET_QUERY_PARAMETER = 'resetDemo'
@@ -8,12 +8,14 @@ export type FoundStations = Record<string, boolean>
 export type ExperienceProgress = {
   foundStations: FoundStations
   secretRevealSeen: boolean
+  engagement: EngagementProgress
 }
 
 export type PersistedExperienceProgress = {
   experienceId: string
   stations: FoundStations
   secretRevealSeen: boolean
+  engagement?: EngagementProgress
 }
 
 export type ExperienceStorageContext = ExperienceRuntime | ExperienceConfig
@@ -26,6 +28,11 @@ const getExperienceConfig = (experience: ExperienceStorageContext): ExperienceCo
 const createInitialProgress = (): ExperienceProgress => ({
   foundStations: {},
   secretRevealSeen: false,
+  engagement: {
+    unlockedMicroRewardIds: [],
+    unlockedPhotoFrameIds: [],
+    finalRewardClaimed: false,
+  },
 })
 
 function getBrowserStorage(): ExperienceStorage | null {
@@ -70,6 +77,19 @@ function parseFoundStations(value: unknown): FoundStations | null {
   return foundStations
 }
 
+function parseEngagementProgress(value: unknown): EngagementProgress {
+  if (!isRecord(value)) return createInitialProgress().engagement
+
+  const parseIds = (ids: unknown) =>
+    Array.isArray(ids) ? ids.filter((id): id is string => typeof id === 'string') : []
+
+  return {
+    unlockedMicroRewardIds: parseIds(value.unlockedMicroRewardIds),
+    unlockedPhotoFrameIds: parseIds(value.unlockedPhotoFrameIds),
+    finalRewardClaimed: value.finalRewardClaimed === true,
+  }
+}
+
 function parseJson(raw: string): unknown | null {
   try {
     return JSON.parse(raw) as unknown
@@ -87,7 +107,11 @@ function parseNamespacedProgress(raw: string | null, experienceId: string): Expe
   const foundStations = parseFoundStations(parsed.stations)
   if (!foundStations) return null
 
-  return { foundStations, secretRevealSeen: parsed.secretRevealSeen }
+  return {
+    foundStations,
+    secretRevealSeen: parsed.secretRevealSeen,
+    engagement: parseEngagementProgress(parsed.engagement),
+  }
 }
 
 function parseLegacyProgress(raw: string | null, experienceId: string): ExperienceProgress | null {
@@ -102,7 +126,7 @@ function parseLegacyProgress(raw: string | null, experienceId: string): Experien
   const secretRevealSeen = parsed.secretRevealSeen === undefined ? false : parsed.secretRevealSeen
   if (typeof secretRevealSeen !== 'boolean') return null
 
-  return { foundStations, secretRevealSeen }
+  return { foundStations, secretRevealSeen, engagement: parseEngagementProgress(parsed.engagement) }
 }
 
 function getLegacyStorageConfig(config: ExperienceConfig) {
@@ -121,6 +145,7 @@ function serializeNamespacedProgress(experienceId: string, progress: ExperienceP
       experienceId,
       stations: progress.foundStations,
       secretRevealSeen: progress.secretRevealSeen,
+      engagement: progress.engagement,
     }
     return JSON.stringify(persisted)
   } catch {
@@ -134,6 +159,7 @@ function serializeLegacyProgress(experienceId: string, progress: ExperienceProgr
       eventId: experienceId,
       stations: progress.foundStations,
       secretRevealSeen: progress.secretRevealSeen,
+      engagement: progress.engagement,
     })
   } catch {
     return null

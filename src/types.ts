@@ -28,6 +28,77 @@ export type PhotoStudioConfig = {
   filters: PhotoStudioFilter[]
 }
 
+export type EngagementProgress = {
+  unlockedMicroRewardIds: string[]
+  unlockedPhotoFrameIds: string[]
+  finalRewardClaimed: boolean
+}
+
+export type EngagementMicroReward = {
+  id: string
+  stationId: string
+  title: string
+  message: string
+  photoFrameIds?: string[]
+  progressBonus?: number
+}
+
+export type EngagementConfig = {
+  enabled: boolean
+  goal: {
+    title: string
+    description: string
+    requiredUnlocks: number
+    progressStationIds?: string[]
+  }
+  finalReward: {
+    id: string
+    title: string
+    description: string
+    readyDescription: string
+    unlockedDescription: string
+    claimLabel: string
+    lockedLabel: string
+    readyLabel: string
+    unlockedLabel: string
+    disclaimer: string
+    image: string
+    passportStationId?: string
+    photoStudioFilterId?: string
+    photoActionLabel?: string
+  }
+  progressMessages: {
+    zero: string
+    progress: string
+    halfway: string
+    oneLeft: string
+    complete: string
+  }
+  feedback: {
+    title: string
+    continueLabel: string
+  }
+  microRewards: EngagementMicroReward[]
+  photoStudioUnlocks?: {
+    filterId: string
+    requiredStationId?: string
+  }[]
+  secretHints?: {
+    showDetectedAfter: number
+    lockedTitle: string
+    lockedMessage: string
+    detectedTitle: string
+    detectedMessage: string
+    foundTitle: string
+    foundMessage: string
+  }
+  drop?: {
+    stationId: string
+    title: string
+    description: string
+  }
+}
+
 export type ExperienceTheme = {
   background: string
   screen: string
@@ -188,6 +259,7 @@ export type ExperienceConfig = {
   explorationStationIds: string[]
   qrStationIds: string[]
   photoStudio: PhotoStudioConfig
+  engagement?: EngagementConfig
 }
 
 export type ExperienceRuntime = {
