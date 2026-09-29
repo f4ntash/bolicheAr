@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 250" role="img" aria-labelledby="title">
+  <title id="title">Nota: me quedo con este momento</title>
+  <path d="m23 33 34-12 35 8 33-12 34 12 34-9 34 15 35-12 34 14 37-6 37 18-8 30 9 31-22 17-31-7-29 13-32-12-31 9-34-13-32 8-25-19-34 8-20-24-31-5z" fill="#F8F4E9" stroke="#111" stroke-width="6" stroke-linejoin="round"/>
+  <path d="M141 20 291 15l5 29-153 6z" fill="#F5DA9B" opacity=".9"/>
+  <path d="M153 28 282 24" stroke="#111" stroke-opacity=".13" stroke-width="3" stroke-dasharray="4 8"/>
+  <text x="220" y="110" text-anchor="middle" fill="#111" font-family="Bradley Hand,Comic Sans MS,cursive" font-size="42" font-weight="700" font-style="italic">ME QUEDO</text>
+  <text x="220" y="161" text-anchor="middle" fill="#111" font-family="Bradley Hand,Comic Sans MS,cursive" font-size="37" font-weight="700" font-style="italic">CON ESTE MOMENTO</text>
+  <path d="M71 184q147 18 296-3" fill="none" stroke="#FF2F92" stroke-width="8" stroke-linecap="round"/>
+  <path d="m373 53 7 16 18 1-14 11 5 17-16-10-15 10 5-17-14-11 18-1z" fill="#D7FF2F" stroke="#111" stroke-width="3"/>
+</svg>

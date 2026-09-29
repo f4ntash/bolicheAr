@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 130" role="img" aria-labelledby="title">
+  <title id="title">NIGHT 03, Mendoza</title>
+  <path d="M8 22 405 8l8 92L14 122z" fill="#F5DA9B" stroke="#111" stroke-width="5" stroke-linejoin="round"/>
+  <path d="M8 22 405 8l8 92L14 122z" fill="url(#tape)"/>
+  <defs><pattern id="tape" width="16" height="16" patternUnits="userSpaceOnUse" patternTransform="rotate(24)"><path d="M0 0v16" stroke="#111" stroke-opacity=".11" stroke-width="3"/></pattern></defs>
+  <text x="210" y="65" text-anchor="middle" fill="#111" font-family="Bradley Hand,Comic Sans MS,cursive" font-size="38" font-weight="800" font-style="italic">NIGHT 03 · MENDOZA</text>
+  <path d="M50 82q153 10 310-7" fill="none" stroke="#174AFF" stroke-width="6" stroke-linecap="round"/>
+</svg>
