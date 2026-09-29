@@ -67,7 +67,7 @@ function useMomentViews() {
 function MomentTile({ moment, poster }: { moment: NoctraMomentView; poster?: string }) {
   const date = new Date(moment.createdAt)
   const dateLabel = Number.isNaN(date.getTime()) ? moment.eventDate : new Intl.DateTimeFormat('es-AR', { day: '2-digit', month: 'short', year: 'numeric' }).format(date).replace('.', '').toUpperCase()
-  return <article className={`noctra-moment-tile noctra-moment-tile--${moment.kind}`}>
+  return <article className={`noctra-moment-tile noctra-moment-tile--${moment.kind}`} data-station-id={moment.stationId} data-has-photo={moment.photoUrl ? 'true' : 'false'}>
     <div className="noctra-moment-tile__image"><img src={moment.photoUrl || poster || ''} alt={moment.photoUrl ? `Foto guardada en ${moment.stationName}` : `Imagen de ${moment.stationName}`} /><span>{moment.kind === 'secret' ? 'SECRET' : moment.kind === 'special' ? 'SPECIAL' : 'NOCTRA'}</span></div>
     <div className="noctra-moment-tile__copy"><strong>{moment.stationName}</strong><small>{dateLabel} <i /> {moment.editionLabel}</small><p>{moment.badge || moment.reward}</p>{moment.photoUrl && <em>FOTO GUARDADA</em>}</div>
   </article>
