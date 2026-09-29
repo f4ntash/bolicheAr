@@ -7,9 +7,9 @@ import './noctra-moments.css'
 type RewardState = 'locked' | 'ready' | 'unlocked'
 
 export function NoctraHomeLoop({ edition }: { edition: NoctraEdition }) {
-  return <div className="noctra-home-loop">
-    <p>Encontrá momentos.<br />Desbloqueá efectos.<br />Guardá tu noche.<br />Accedé a recompensas.</p>
-    <span>{edition.label} <i /> UNA NOCHE QUE QUEDA</span>
+  return <div className="noctra-home-loop" data-edition={edition.id} aria-label="Recompensa y señal oculta de NOCTRA">
+    <p><span>4 MOMENTOS</span><ArrowRight size={15} aria-hidden="true" /><strong>BACKSTAGE ACCESS</strong></p>
+    <span><i /> UNA SEÑAL OCULTA ESTÁ ACTIVA ESTA NOCHE</span>
   </div>
 }
 

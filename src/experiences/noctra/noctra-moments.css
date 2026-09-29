@@ -1,17 +1,18 @@
 .noctra-app .noctra-home-loop {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 12px;
-  margin: 15px 0 12px;
-  padding: 10px 12px 9px;
-  border-left: 1px solid rgba(245, 239, 228, .58);
-  background: linear-gradient(90deg, rgba(10, 10, 13, .44), rgba(10, 10, 13, .04));
+  display: grid;
+  gap: 9px;
+  margin: 19px 0 17px;
+  padding: 12px 0 0;
+  border-top: 1px solid rgba(245, 239, 228, .28);
   color: #f3eee7;
 }
-.noctra-app .noctra-home-loop p { margin: 0; font-size: 10px; line-height: 1.55; letter-spacing: .035em; }
-.noctra-app .noctra-home-loop > span { flex: 0 0 auto; color: rgba(243, 238, 231, .72); font-size: 7px; letter-spacing: .15em; text-align: right; text-transform: uppercase; }
-.noctra-app .noctra-home-loop i, .noctra-moment-tile small i { display: inline-block; width: 3px; height: 3px; margin: 0 5px 2px; border-radius: 50%; background: #e1a77b; }
+.noctra-app .noctra-home-loop p { display: flex; align-items: center; gap: 9px; max-width: none; margin: 0; font-family: Arial, Helvetica, sans-serif; font-size: 8px; letter-spacing: .12em; white-space: nowrap; }
+.noctra-app .noctra-home-loop p span { color: rgba(243, 238, 231, .72); }
+.noctra-app .noctra-home-loop p svg { flex: 0 0 auto; color: #e9b292; }
+.noctra-app .noctra-home-loop p strong { color: #efc0a3; font-size: 9px; font-weight: 500; letter-spacing: .14em; }
+.noctra-app .noctra-home-loop > span { display: flex; align-items: center; gap: 8px; color: rgba(243, 238, 231, .72); font-size: 7px; line-height: 1.45; letter-spacing: .13em; text-transform: uppercase; }
+.noctra-app .noctra-home-loop i { display: inline-block; width: 4px; height: 4px; flex: 0 0 auto; margin: 0; border-radius: 50%; background: #e1a77b; box-shadow: 0 0 9px rgba(225, 167, 123, .8); }
+.noctra-moment-tile small i { display: inline-block; width: 3px; height: 3px; margin: 0 5px 2px; border-radius: 50%; background: #e1a77b; }
 
 .noctra-app .noctra-reveal {
   display: flex;
@@ -139,18 +140,9 @@
 
 .noctra-app .noctra-photo-input { position: fixed; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .noctra-app .studio-screen.noctra-studio .studio-feedback { right: 24px; bottom: calc(198px + env(safe-area-inset-bottom, 0px)); left: 24px; font-size: 7px; line-height: 1.25; text-shadow: 0 1px 6px #08090b; }
-.noctra-app .share-screen { overflow-x: hidden; overflow-y: auto; padding-bottom: 76px; }
+.noctra-app .share-screen { overflow-x: hidden; overflow-y: auto; padding-bottom: 76px; background-color: #09090b; }
 .noctra-app .share-screen .corsteno-credit { position: relative; right: auto; bottom: auto; display: block; width: max-content; margin: 0 auto; }
 .noctra-app .share-screen .back-edit { position: relative; bottom: auto; left: auto; width: max-content; margin: 11px auto 20px; }
-.noctra-clip-tools { position: relative; z-index: 3; display: grid; justify-items: center; gap: 9px; width: min(100% - 36px, 510px); margin: 18px auto 32px; padding: 14px; border: 1px solid rgba(243, 238, 231, .22); background: rgba(8, 9, 12, .78); text-align: center; }
-.noctra-clip-tools > p { margin: 0; color: rgba(243, 238, 231, .68); font-size: 7px; letter-spacing: .17em; }
-.noctra-clip-tools > small, .noctra-clip-tools > span { color: rgba(243, 238, 231, .68); font-size: 8px; line-height: 1.4; }
-.noctra-clip-tools__primary { display: inline-flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 40px; padding: 0 13px; border: 0; background: #eee8de; color: #111114; font-size: 7px; letter-spacing: .12em; }
-.noctra-clip-tools__primary:disabled { opacity: .65; }
-.noctra-clip-tools__secondary { display: flex; gap: 8px; }
-.noctra-clip-tools__secondary button { padding: 8px 10px; border: 1px solid rgba(243, 238, 231, .3); background: transparent; color: #f3eee7; font-size: 7px; letter-spacing: .12em; }
-.noctra-clip-preview { width: min(100%, 240px); max-height: 330px; background: #09090b; }
-
 @media (min-width: 600px) {
   .noctra-night-recap__content { padding-top: 18px; }
   .noctra-night-recap__content h1 { font-size: 57px; }
