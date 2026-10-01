@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import { ArrowLeft, ArrowRight, Camera, Sparkles } from 'lucide-react'
 import type { NoctraEdition, NoctraMomentView, NoctraStationVariant } from './noctraMoments'
 import { DEFAULT_NOCTRA_EDITION, getNoctraStationVariant, loadNoctraMomentViews, NOCTRA_EDITIONS } from './noctraMoments'
-import './noctra-moments.css'
 
 type RewardState = 'locked' | 'ready' | 'unlocked'
 

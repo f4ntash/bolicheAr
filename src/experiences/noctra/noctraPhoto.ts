@@ -5,6 +5,14 @@ import { assetUrl } from '../../utils/assets'
 export const NOCTRA_WASM_PATH = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.0.1/wasm'
 export const NOCTRA_MODEL_PATH = assetUrl('models/selfie_segmenter.tflite')
 
+export type NoctraPhotoFormat = 'foto' | 'story' | 'post'
+
+const NOCTRA_PHOTO_OUTPUT_SIZE: Record<NoctraPhotoFormat, { width: number; height: number }> = {
+  foto: { width: 720, height: 900 },
+  story: { width: 720, height: 1280 },
+  post: { width: 720, height: 720 },
+}
+
 function drawCover(context: CanvasRenderingContext2D, source: CanvasImageSource, sourceWidth: number, sourceHeight: number, width: number, height: number) {
   const scale = Math.max(width / sourceWidth, height / sourceHeight)
   const drawWidth = sourceWidth * scale
@@ -229,6 +237,7 @@ function drawStamp(context: CanvasRenderingContext2D, width: number, height: num
 export async function renderNoctraPhoto(options: {
   photo: Blob
   backgroundUrl: string
+  format: NoctraPhotoFormat
   variant: NoctraStationVariant
   editionLabel: string
   dateLabel: string
@@ -245,8 +254,7 @@ export async function renderNoctraPhoto(options: {
     photoImage.close()
     throw error
   }
-  const width = 720
-  const height = 1280
+  const { width, height } = NOCTRA_PHOTO_OUTPUT_SIZE[options.format]
   const output = document.createElement('canvas')
   output.width = width
   output.height = height

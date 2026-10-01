@@ -1,62 +1,12 @@
-/* Visual foundation for the next NOCTRA redesign. Deliberately not imported yet. */
-:root {
-  --noctra-color-paper: #f8f4e9;
-  --noctra-color-paper-shadow: #eee7d9;
-  --noctra-color-ink: #111111;
-  --noctra-color-blue: #174aff;
-  --noctra-color-pink: #ff2f92;
-  --noctra-color-coral: #ff6038;
-  --noctra-color-lime: #d7ff2f;
-  --noctra-color-red: #f4313f;
-  --noctra-color-cyan: #2bd8e8;
-  --noctra-color-muted: #6a625b;
-
-  --noctra-font-display: Impact, "Arial Black", "Arial Narrow", sans-serif;
-  --noctra-font-heading: "Arial Black", Impact, system-ui, sans-serif;
-  --noctra-font-body: Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
-  --noctra-font-meta: "Courier New", ui-monospace, monospace;
-  --noctra-font-marker: "Bradley Hand", "Comic Sans MS", cursive;
-
-  --noctra-type-display: clamp(3.5rem, 14vw, 10rem);
-  --noctra-type-heading: clamp(2rem, 7vw, 5rem);
-  --noctra-type-body: 1rem;
-  --noctra-type-micro: 0.6875rem;
-  --noctra-line-display: 0.82;
-  --noctra-line-heading: 0.94;
-  --noctra-line-body: 1.5;
-  --noctra-tracking-display: -0.065em;
-  --noctra-tracking-meta: 0.14em;
-
-  --noctra-space-1: 0.25rem;
-  --noctra-space-2: 0.5rem;
-  --noctra-space-3: 0.75rem;
-  --noctra-space-4: 1rem;
-  --noctra-space-6: 1.5rem;
-  --noctra-space-8: 2rem;
-  --noctra-space-12: 3rem;
-  --noctra-space-16: 4rem;
-  --noctra-space-24: 6rem;
-
-  --noctra-radius-cut: 0;
-  --noctra-radius-label: 0.25rem;
-  --noctra-radius-photo: 0.5rem;
-  --noctra-radius-pill: 999px;
-
-  --noctra-border-ink: 2px solid var(--noctra-color-ink);
-  --noctra-border-hairline: 1px solid rgb(17 17 17 / 22%);
-  --noctra-shadow-paper: 3px 4px 0 var(--noctra-color-ink);
-  --noctra-shadow-sticker: 2px 3px 0 rgb(17 17 17 / 76%);
-  --noctra-shadow-photo: 0 12px 28px rgb(17 17 17 / 18%);
-
-  --noctra-z-base: 0;
-  --noctra-z-photo: 10;
-  --noctra-z-paper: 20;
-  --noctra-z-annotation: 30;
-  --noctra-z-navigation: 40;
-  --noctra-z-overlay: 50;
-
-  --noctra-motion-fast: 140ms;
-  --noctra-motion-standard: 260ms;
-  --noctra-motion-reveal: 520ms;
-  --noctra-ease-cut: cubic-bezier(0.2, 0.75, 0.2, 1);
+.noctra-app {
+  --noctra-color-paper: #f3f0e8;
+  --noctra-color-paper-raised: #e9e5dc;
+  --noctra-color-ink: #191a18;
+  --noctra-color-ink-soft: #353632;
+  --noctra-color-coral: #bd604a;
+  --noctra-color-muted: #6b6a63;
+  --noctra-color-line: rgb(25 26 24 / 17%);
+  --noctra-font-display: Georgia, "Times New Roman", serif;
+  --noctra-font-body: Arial, Helvetica, sans-serif;
+  --noctra-focus: 0 0 0 3px rgb(189 96 74 / 35%);
 }

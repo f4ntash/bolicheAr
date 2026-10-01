@@ -1,7 +1,6 @@
 import { ArrowLeft, ArrowRight, CalendarDays, Check, Compass, LockKeyhole, Music2, Sparkles, Ticket, UnlockKeyhole } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { assetUrl } from '../../utils/assets'
-import './NoctraEditorialSections.css'
 
 type RewardState = 'locked' | 'ready' | 'unlocked'
 
@@ -95,11 +94,11 @@ type MomentCatalogProps = {
 
 export function NoctraMomentsCatalog({ onBack, onExplore, isStationFound, engagementCount, requiredCount, rewardState }: MomentCatalogProps) {
   const moments = [
-    { id: 'entrance', title: 'FIRST PULSE', description: 'La noche empieza acá.', reward: 'Frame NOCTRA', kind: 'PRINCIPAL', image: 'experiences/noctra/moments/noctra-moment-first-pulse.svg', status: isStationFound('entrance') ? 'COMPLETADO' : 'DISPONIBLE' },
-    { id: 'main-stage', title: 'MAIN STAGE', description: 'El momento central.', reward: 'Frame MAIN STAGE', kind: 'PRINCIPAL', image: 'experiences/noctra/moments/noctra-moment-main-stage.svg', status: isStationFound('main-stage') ? 'COMPLETADO' : 'DISPONIBLE' },
-    { id: 'hidden-frequency', title: 'HIDDEN FREQUENCY', description: 'No todos la encuentran.', reward: 'Secret Badge', kind: 'SECRET', image: 'experiences/noctra/moments/noctra-moment-hidden-frequency.svg', status: isStationFound('hidden-frequency') ? 'COMPLETADO' : 'SECRET' },
-    { id: 'nova-drop', title: 'NOVA DROP', description: 'Una activación especial.', reward: 'NOVA pass + frame', kind: 'BONUS', image: 'experiences/noctra/moments/noctra-moment-nova-drop.svg', status: isStationFound('nova-drop') ? 'COMPLETADO' : 'BONUS' },
-    { id: 'final-drop', title: 'FINAL DROP · BACKSTAGE', description: 'Completá 4 momentos.', reward: 'Backstage Access', kind: 'REWARD', image: 'experiences/noctra/moments/noctra-moment-final-drop.svg', status: rewardState === 'locked' ? 'LOCKED' : rewardState === 'ready' ? 'LISTO' : 'DESBLOQUEADO' },
+    { id: 'entrance', title: 'FIRST PULSE', description: 'La noche empieza acá.', reward: 'Frame NOCTRA', kind: 'PRINCIPAL', image: 'experiences/noctra/photos/friends/noctra-photo-friends-01-landscape.webp', status: isStationFound('entrance') ? 'COMPLETADO' : 'DISPONIBLE' },
+    { id: 'main-stage', title: 'MAIN STAGE', description: 'El momento central.', reward: 'Frame MAIN STAGE', kind: 'PRINCIPAL', image: 'experiences/noctra/photos/crowds/noctra-photo-crowd-01-landscape.webp', status: isStationFound('main-stage') ? 'COMPLETADO' : 'DISPONIBLE' },
+    { id: 'hidden-frequency', title: 'HIDDEN FREQUENCY', description: 'No todos la encuentran.', reward: 'Secret Badge', kind: 'SECRET', image: 'experiences/noctra/photos/backstage/noctra-photo-backstage-corridor-01-landscape.webp', status: isStationFound('hidden-frequency') ? 'COMPLETADO' : 'SECRET' },
+    { id: 'nova-drop', title: 'NOVA DROP', description: 'Una activación especial.', reward: 'NOVA pass + frame', kind: 'BONUS', image: 'experiences/noctra/photos/sunsets/noctra-photo-sunset-palms-01-landscape.webp', status: isStationFound('nova-drop') ? 'COMPLETADO' : 'BONUS' },
+    { id: 'final-drop', title: 'FINAL DROP · BACKSTAGE', description: 'Completá 4 momentos.', reward: 'Backstage Access', kind: 'REWARD', image: 'experiences/noctra/photos/backstage/noctra-photo-backstage-corridor-01-landscape.webp', status: rewardState === 'locked' ? 'LOCKED' : rewardState === 'ready' ? 'LISTO' : 'DESBLOQUEADO' },
   ]
   const collectedCount = moments.filter((moment) => moment.status === 'COMPLETADO' || moment.status === 'DESBLOQUEADO').length
 

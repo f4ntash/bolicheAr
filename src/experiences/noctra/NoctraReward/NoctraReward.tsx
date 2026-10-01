@@ -1,7 +1,6 @@
 import { ArrowLeft, ArrowRight, Check, Gift, LockKeyhole } from 'lucide-react'
 import type { ExperienceRuntime } from '../../../types'
 import NoctraHeader from '../components/NoctraHeader/NoctraHeader'
-import './NoctraReward.css'
 
 type NoctraRewardProps = {
   experience: ExperienceRuntime
