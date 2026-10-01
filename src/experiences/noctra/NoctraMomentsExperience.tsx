@@ -13,7 +13,7 @@ export function NoctraHomeLoop({ edition }: { edition: NoctraEdition }) {
   </div>
 }
 
-export function NoctraMomentReveal({ stationName, stationImage, variant, edition, progress, required, rewards, onCreate, onContinue }: {
+export function NoctraMomentReveal({ stationName, stationImage, variant, edition, progress, required, rewards, createLabel, onCreate, onContinue }: {
   stationName: string
   stationImage: string
   variant: NoctraStationVariant
@@ -21,6 +21,7 @@ export function NoctraMomentReveal({ stationName, stationImage, variant, edition
   progress: number
   required: number
   rewards: string[]
+  createLabel?: string
   onCreate: () => void
   onContinue: () => void
 }) {
@@ -37,7 +38,7 @@ export function NoctraMomentReveal({ stationName, stationImage, variant, edition
       {rewards.length > 0 && <div className="noctra-reveal__reward"><span>DESBLOQUEASTE</span><strong>{rewards.join(' · ')}</strong></div>}
     </div>
     <div className="noctra-reveal__actions">
-      <button className="cream-button" onClick={onCreate}><Camera size={17} /> CREAR MI MOMENTO <ArrowRight size={17} /></button>
+      <button className="cream-button" onClick={onCreate}><Camera size={17} /> {createLabel ?? 'CREAR MI MOMENTO'} <ArrowRight size={17} /></button>
       <button className="noctra-reveal__continue" onClick={onContinue}>SEGUIR EN LA NOCHE</button>
     </div>
   </section>
@@ -135,7 +136,7 @@ export function NoctraPhotoEffects({ variant, edition, dateLabel }: { variant: N
 
 type NoctraExperienceUIProps =
   | { mode: 'home-loop'; editionId: string }
-  | { mode: 'moment-reveal'; stationName: string; stationImage: string; variant: NoctraStationVariant; editionId: string; progress: number; required: number; rewards: string[]; onCreate: () => void; onContinue: () => void }
+  | { mode: 'moment-reveal'; stationName: string; stationImage: string; variant: NoctraStationVariant; editionId: string; progress: number; required: number; rewards: string[]; createLabel?: string; onCreate: () => void; onContinue: () => void }
   | { mode: 'passport-moments'; stationImages: Record<string, string>; onOpenNight: () => void; onDiscover: () => void }
   | { mode: 'night-recap'; editionId: string; rewardState: RewardState; stationImages: Record<string, string>; fallbackImage: string; onBack: () => void; onDiscover: () => void }
   | { mode: 'photo-effects'; stationId: string; editionId: string }

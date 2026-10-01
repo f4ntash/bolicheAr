@@ -32,13 +32,13 @@ function PageHeading({ eyebrow, title, description }: { eyebrow: string; title: 
 }
 
 const upcomingDates = [
-  { date: '12 OCT', title: 'NIGHT 04', location: 'MENDOZA', state: 'DISPONIBLE', art: 'experiences/noctra/photos/crowds/noctra-photo-crowd-01-landscape.webp', tone: 'pink', action: true },
+  { date: '12 OCT', title: 'NIGHT 04', location: 'MENDOZA', state: 'DISPONIBLE', art: 'experiences/noctra/photos/crowds/noctra-photo-crowd-01-landscape.webp', tone: 'pink' },
   { date: '26 OCT', title: 'SUNSET SPECIAL', location: 'LUJÁN DE CUYO', state: 'PRÓXIMAMENTE', art: 'experiences/noctra/photos/sunsets/noctra-photo-sunset-palms-01-landscape.webp', tone: 'coral' },
   { date: '09 NOV', title: 'NIGHT 05', location: 'MENDOZA', state: 'SOLD OUT', art: 'experiences/noctra/photos/friends/noctra-photo-friends-01-landscape.webp', tone: 'blue' },
-  { date: '23 NOV', title: 'SPECIAL DROP', location: 'UBICACIÓN POR REVELAR', state: 'SECRET LOCATION', art: 'experiences/noctra/photos/backstage/noctra-photo-backstage-corridor-01-landscape.webp', tone: 'lime' },
+  { date: '23 NOV', title: 'SPECIAL DROP', location: 'UBICACIÓN POR REVELAR', state: 'UBICACIÓN SECRETA', art: 'experiences/noctra/photos/backstage/noctra-photo-backstage-corridor-01-landscape.webp', tone: 'lime' },
 ]
 
-export function NoctraUpcomingDates({ onBack, onEdition }: { onBack: () => void; onEdition: () => void }) {
+export function NoctraUpcomingDates({ onBack }: { onBack: () => void }) {
   return <NoctraSectionFrame section="PRÓXIMAS FECHAS" onBack={onBack} className="noctra-upcoming-dates">
     <PageHeading eyebrow="NOCTRA · CALENDARIO CONCEPTUAL" title="Próximas fechas" description="Nuevas noches. Nuevos momentos." />
     <div className="noctra-dates-grid">
@@ -49,7 +49,6 @@ export function NoctraUpcomingDates({ onBack, onEdition }: { onBack: () => void;
         <h2>{date.title}</h2>
         <p>{date.location}</p>
         <span className="noctra-date-poster__state"><i />{date.state}</span>
-        {date.action && <button type="button" className="noctra-date-poster__action" onClick={onEdition}>VER EDICIÓN <ArrowRight size={14} /></button>}
       </article>)}
     </div>
     <p className="noctra-editorial__note"><CalendarDays size={15} /> Fechas y estados conceptuales. Esta demo no ofrece entradas ni reservas.</p>
@@ -57,11 +56,11 @@ export function NoctraUpcomingDates({ onBack, onEdition }: { onBack: () => void;
 }
 
 const lineup = [
-  { time: '22:00', name: 'LERA', stage: 'SUNSET', note: 'El primer pulso · warm up' },
-  { time: '23:30', name: 'AURA 91', stage: 'MAIN', note: 'Ritmo abierto · live set' },
-  { time: '01:00', name: 'NULLA', stage: 'MAIN', note: 'Frecuencia central · headliner', headliner: true },
-  { time: '02:30', name: 'KORO', stage: 'MAIN', note: 'La pista sigue · extended set' },
-  { time: '04:00', name: 'VANTA', stage: 'AFTER', note: 'Último tramo · closing set', closing: true },
+  { time: '22:00', name: 'LERA', stage: 'SUNSET', role: 'OPENING', note: 'El primer pulso · warm up', opening: true },
+  { time: '23:30', name: 'AURA 91', stage: 'MAIN', role: 'MAIN', note: 'Ritmo abierto · live set', main: true },
+  { time: '01:00', name: 'NULLA', stage: 'MAIN', role: 'MAIN', note: 'Frecuencia central · headliner', main: true, headliner: true },
+  { time: '02:30', name: 'KORO', stage: 'MAIN', role: 'MAIN', note: 'La pista sigue · extended set', main: true },
+  { time: '04:00', name: 'VANTA', stage: 'AFTER', role: 'CLOSING', note: 'Último tramo · closing set', closing: true },
 ]
 
 export function NoctraLineup({ onBack }: { onBack: () => void }) {
@@ -75,10 +74,10 @@ export function NoctraLineup({ onBack }: { onBack: () => void }) {
     </div>
     <div className="noctra-lineup-list-heading"><span>PROGRAMACIÓN</span><Music2 size={17} /><span>ARTISTAS FICTICIOS</span></div>
     <ol className="noctra-lineup-list">
-      {lineup.map((act) => <li className={`${act.headliner ? 'is-headliner' : ''}${act.closing ? ' is-closing' : ''}`} key={act.name}>
+      {lineup.map((act) => <li className={`${act.opening ? 'is-opening' : ''}${act.main ? ' is-main' : ''}${act.headliner ? ' is-headliner' : ''}${act.closing ? ' is-closing' : ''}`} key={act.name}>
         <time>{act.time}</time>
         <div><h2>{act.name}</h2><p>{act.note}</p></div>
-        <span className="noctra-lineup-list__stage">{act.stage}</span>
+        <span className="noctra-lineup-list__markers"><b className="noctra-lineup-list__role">{act.role}</b><small className="noctra-lineup-list__stage">{act.stage}</small></span>
       </li>)}
     </ol>
     <p className="noctra-editorial__note"><Music2 size={15} /> Programación conceptual. Line up sujeto a adaptación.</p>
@@ -96,11 +95,11 @@ type MomentCatalogProps = {
 
 export function NoctraMomentsCatalog({ onBack, onExplore, isStationFound, engagementCount, requiredCount, rewardState }: MomentCatalogProps) {
   const moments = [
-    { id: 'entrance', title: 'FIRST PULSE', description: 'La noche empieza acá.', reward: 'Frame NOCTRA', kind: 'RECORRIDO', image: 'experiences/noctra/moments/noctra-moment-first-pulse.svg', status: isStationFound('entrance') ? 'COMPLETADO' : 'DISPONIBLE' },
-    { id: 'main-stage', title: 'MAIN STAGE', description: 'El momento central.', reward: 'Frame MAIN STAGE', kind: 'RECORRIDO', image: 'experiences/noctra/moments/noctra-moment-main-stage.svg', status: isStationFound('main-stage') ? 'COMPLETADO' : 'DISPONIBLE' },
-    { id: 'hidden-frequency', title: 'HIDDEN FREQUENCY', description: 'No todos la encuentran.', reward: 'Secret Badge', kind: 'SECRETO', image: 'experiences/noctra/moments/noctra-moment-hidden-frequency.svg', status: isStationFound('hidden-frequency') ? 'COMPLETADO' : 'SECRET' },
+    { id: 'entrance', title: 'FIRST PULSE', description: 'La noche empieza acá.', reward: 'Frame NOCTRA', kind: 'PRINCIPAL', image: 'experiences/noctra/moments/noctra-moment-first-pulse.svg', status: isStationFound('entrance') ? 'COMPLETADO' : 'DISPONIBLE' },
+    { id: 'main-stage', title: 'MAIN STAGE', description: 'El momento central.', reward: 'Frame MAIN STAGE', kind: 'PRINCIPAL', image: 'experiences/noctra/moments/noctra-moment-main-stage.svg', status: isStationFound('main-stage') ? 'COMPLETADO' : 'DISPONIBLE' },
+    { id: 'hidden-frequency', title: 'HIDDEN FREQUENCY', description: 'No todos la encuentran.', reward: 'Secret Badge', kind: 'SECRET', image: 'experiences/noctra/moments/noctra-moment-hidden-frequency.svg', status: isStationFound('hidden-frequency') ? 'COMPLETADO' : 'SECRET' },
     { id: 'nova-drop', title: 'NOVA DROP', description: 'Una activación especial.', reward: 'NOVA pass + frame', kind: 'BONUS', image: 'experiences/noctra/moments/noctra-moment-nova-drop.svg', status: isStationFound('nova-drop') ? 'COMPLETADO' : 'BONUS' },
-    { id: 'final-drop', title: 'FINAL DROP · BACKSTAGE', description: 'Completá 4 momentos.', reward: 'Backstage Access', kind: 'RECOMPENSA', image: 'experiences/noctra/moments/noctra-moment-final-drop.svg', status: rewardState === 'locked' ? 'LOCKED' : rewardState === 'ready' ? 'LISTO' : 'DESBLOQUEADO' },
+    { id: 'final-drop', title: 'FINAL DROP · BACKSTAGE', description: 'Completá 4 momentos.', reward: 'Backstage Access', kind: 'REWARD', image: 'experiences/noctra/moments/noctra-moment-final-drop.svg', status: rewardState === 'locked' ? 'LOCKED' : rewardState === 'ready' ? 'LISTO' : 'DESBLOQUEADO' },
   ]
   const collectedCount = moments.filter((moment) => moment.status === 'COMPLETADO' || moment.status === 'DESBLOQUEADO').length
 
@@ -166,7 +165,7 @@ export function NoctraExperienceInfo({ onBack, onExplore }: { onBack: () => void
   return <NoctraSectionFrame section="LA EXPERIENCIA" onBack={onBack} className="noctra-experience-info">
     <PageHeading eyebrow="MÁS QUE UNA NOCHE" title="Tu noche deja huella." description="Una experiencia para descubrir, guardar y volver a mirar." />
     <div className="noctra-info-steps">{steps.map(({ n, title, body, icon: Icon }) => <article key={n}><span>{n}</span><Icon size={20} /><h2>{title}</h2><p>{body}</p></article>)}</div>
-    <aside className="noctra-info-disclosure"><strong>DEMO CONCEPTUAL</strong><p>NOCTRA es una experiencia conceptual creada por Corsteno. NOVA, los artistas y los eventos son ficticios. El contenido puede configurarse para cada marca o evento.</p></aside>
+    <aside className="noctra-info-disclosure"><strong>DEMO CONCEPTUAL</strong><p>NOCTRA es una demo conceptual creada por Corsteno. NOVA, los artistas y los eventos son ficticios. La experiencia es configurable para cada marca o evento.</p></aside>
     <button type="button" className="noctra-editorial__primary" onClick={onExplore}>EMPEZAR A EXPLORAR <ArrowRight size={16} /></button>
   </NoctraSectionFrame>
 }

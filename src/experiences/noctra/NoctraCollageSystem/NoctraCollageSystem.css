@@ -695,9 +695,10 @@
 .noctra-app .studio-screen.noctra-studio .studio-options { right: 17px; bottom: calc(130px + env(safe-area-inset-bottom, 0px)); left: 17px; gap: 8px; align-items: center; }
 .noctra-app .studio-screen.noctra-studio .studio-options button { min-height: 66px; gap: 5px; color: var(--noctra-color-ink); font: 800 8px/1.2 var(--noctra-font-meta); }
 .noctra-app .studio-screen.noctra-studio .studio-options img { width: min(100%, 72px); height: 49px; border: 2px solid var(--noctra-color-ink); border-radius: 0; background: var(--noctra-color-paper); object-fit: cover; opacity: 1; box-shadow: 2px 2px 0 var(--noctra-color-ink); }
-.noctra-app .studio-screen.noctra-studio .studio-options button:nth-child(1) img { content: url('/noctra/experiences/noctra/frames/noctra-frame-noctra-9x16.svg'); }
-.noctra-app .studio-screen.noctra-studio .studio-options button:nth-child(2) img { content: url('/noctra/experiences/noctra/frames/noctra-frame-main-stage-9x16.svg'); }
-.noctra-app .studio-screen.noctra-studio .studio-options button:nth-child(3) img { content: url('/noctra/experiences/noctra/frames/noctra-frame-secret-found-9x16.svg'); }
+.noctra-app .studio-screen.noctra-studio .studio-options button[data-noctra-filter-id='entrance'] img { content: url('/noctra/experiences/noctra/frames/noctra-frame-noctra-9x16.svg'); }
+.noctra-app .studio-screen.noctra-studio .studio-options button[data-noctra-filter-id='main-stage'] img { content: url('/noctra/experiences/noctra/frames/noctra-frame-main-stage-9x16.svg'); }
+.noctra-app .studio-screen.noctra-studio .studio-options button[data-noctra-filter-id='hidden-frequency'] img { content: url('/noctra/experiences/noctra/frames/noctra-frame-secret-found-9x16.svg'); }
+.noctra-app .studio-screen.noctra-studio .studio-options button[data-noctra-filter-id='nova-drop'] img { content: url('/noctra/experiences/noctra/frames/noctra-frame-night-03-9x16.svg'); }
 .noctra-app .studio-screen.noctra-studio .studio-options button.active img { border: 3px solid var(--noctra-color-pink); opacity: 1; transform: rotate(-2deg) translateY(-3px); }
 .noctra-app .studio-screen.noctra-studio .studio-options button.active small { color: var(--noctra-color-ink); }
 .noctra-app .studio-screen.noctra-studio .studio-controls { right: 23px; bottom: calc(62px + env(safe-area-inset-bottom, 0px)); left: 23px; color: var(--noctra-color-ink); }
@@ -906,6 +907,7 @@
 .noctra-app .noctra-reveal__header { position: absolute; top: 0; right: 0; left: 0; color: var(--noctra-color-ink); }
 .noctra-app .noctra-reveal__header > span { color: var(--noctra-color-ink); font: 800 8px/1.2 var(--noctra-font-meta); }
 .noctra-app .noctra-reveal__copy { position: absolute; top: 48%; right: 7%; left: 7%; margin: 0; padding: 17px; border: 2px solid var(--noctra-color-ink); background: var(--noctra-color-paper); box-shadow: 4px 5px 0 var(--noctra-color-blue); color: var(--noctra-color-ink); transform: rotate(-1deg); }
+.noctra-app .noctra-reveal.noctra-effect-nova-gold .noctra-reveal__copy { width: auto; }
 .noctra-app .noctra-reveal__eyebrow { color: var(--noctra-color-pink); font: 800 8px/1.2 var(--noctra-font-meta); }
 .noctra-app .noctra-reveal__edition { color: var(--noctra-color-blue); font: 800 8px/1.2 var(--noctra-font-meta); }
 .noctra-app .noctra-reveal__copy h1 { margin: 7px 0; color: var(--noctra-color-ink); font: 900 clamp(37px, 11vw, 72px)/.82 var(--noctra-font-display); }
@@ -1420,10 +1422,10 @@
 .noctra-app .studio-screen.noctra-studio .studio-options::-webkit-scrollbar { display: none; }
 .noctra-app .studio-screen.noctra-studio .studio-options button { display: flex; min-width: 94px; min-height: 66px; max-width: 132px; flex: 1 0 94px; flex-direction: column; gap: 4px; align-items: center; justify-content: center; padding: 4px 5px; border: 1.5px solid var(--noctra-color-ink); background: var(--noctra-color-paper); color: var(--noctra-color-ink); font: 800 14px/1.2 var(--noctra-font-meta); }
 .noctra-app .studio-screen.noctra-studio .studio-options img { width: min(100%, 74px); height: 43px; border: 1.5px solid var(--noctra-color-ink); border-radius: 0; background: var(--noctra-color-paper); object-fit: cover; opacity: 1; box-shadow: 1px 2px 0 var(--noctra-color-ink); }
-.noctra-app .studio-screen.noctra-studio .studio-options button:nth-child(1) img { content: url('/noctra/experiences/noctra/frames/noctra-frame-noctra-9x16.svg'); }
-.noctra-app .studio-screen.noctra-studio .studio-options button:nth-child(2) img { content: url('/noctra/experiences/noctra/frames/noctra-frame-main-stage-9x16.svg'); }
-.noctra-app .studio-screen.noctra-studio .studio-options button:nth-child(3) img { content: url('/noctra/experiences/noctra/frames/noctra-frame-secret-found-9x16.svg'); }
-.noctra-app .studio-screen.noctra-studio .studio-options button:nth-child(4) img { content: url('/noctra/experiences/noctra/passes/noctra-pass-nova-pass.svg'); }
+.noctra-app .studio-screen.noctra-studio .studio-options button[data-noctra-filter-id='entrance'] img { content: url('/noctra/experiences/noctra/frames/noctra-frame-noctra-9x16.svg'); }
+.noctra-app .studio-screen.noctra-studio .studio-options button[data-noctra-filter-id='main-stage'] img { content: url('/noctra/experiences/noctra/frames/noctra-frame-main-stage-9x16.svg'); }
+.noctra-app .studio-screen.noctra-studio .studio-options button[data-noctra-filter-id='hidden-frequency'] img { content: url('/noctra/experiences/noctra/frames/noctra-frame-secret-found-9x16.svg'); }
+.noctra-app .studio-screen.noctra-studio .studio-options button[data-noctra-filter-id='nova-drop'] img { content: url('/noctra/experiences/noctra/frames/noctra-frame-night-03-9x16.svg'); }
 .noctra-app .studio-screen.noctra-studio .studio-options button.active { background: var(--noctra-color-lime); box-shadow: 2px 3px 0 var(--noctra-color-ink); }
 .noctra-app .studio-screen.noctra-studio .studio-options button.active img { border: 3px solid var(--noctra-color-pink); opacity: 1; transform: none; }
 .noctra-app .studio-screen.noctra-studio .shutter { position: relative; inset: auto; grid-area: capture; justify-self: center; width: 64px; height: 64px; min-width: 64px; min-height: 64px; border: 3px solid var(--noctra-color-ink); background: var(--noctra-color-paper); box-shadow: inset 0 0 0 7px var(--noctra-color-lime), 0 3px 0 var(--noctra-color-ink); }

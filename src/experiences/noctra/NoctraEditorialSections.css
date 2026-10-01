@@ -86,7 +86,12 @@
 .noctra-app .noctra-lineup-list time { color: var(--noctra-color-blue); font: 900 9px/1 var(--noctra-font-meta); }
 .noctra-app .noctra-lineup-list h2 { margin: 0; color: var(--noctra-color-ink); font: 950 22px/.9 var(--noctra-font-display); letter-spacing: -.035em; }
 .noctra-app .noctra-lineup-list p { margin: 4px 0 0; color: var(--noctra-color-muted); font: 600 10px/1.2 var(--noctra-font-body); }
-.noctra-app .noctra-lineup-list__stage { padding: 5px 6px; border: 1px solid var(--noctra-color-ink); background: var(--noctra-color-paper-shadow); color: var(--noctra-color-ink); font: 900 7px/1 var(--noctra-font-meta); letter-spacing: .06em; }
+.noctra-app .noctra-lineup-list__markers { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+.noctra-app .noctra-lineup-list__role { padding: 5px 6px; border: 1px solid var(--noctra-color-ink); background: var(--noctra-color-coral); color: var(--noctra-color-ink); font: 900 7px/1 var(--noctra-font-meta); letter-spacing: .06em; }
+.noctra-app .noctra-lineup-list__stage { color: var(--noctra-color-muted); font: 800 6px/1 var(--noctra-font-meta); letter-spacing: .06em; }
+.noctra-app .noctra-lineup-list li.is-opening .noctra-lineup-list__role { background: var(--noctra-color-blue); color: var(--noctra-color-paper); }
+.noctra-app .noctra-lineup-list li.is-headliner .noctra-lineup-list__role { background: var(--noctra-color-lime); }
+.noctra-app .noctra-lineup-list li.is-closing .noctra-lineup-list__role { background: var(--noctra-color-pink); }
 .noctra-app .noctra-lineup-list li.is-headliner { min-height: 77px; margin: 4px 0; padding: 8px 8px; border: 2px solid var(--noctra-color-ink); background: var(--noctra-color-pink); box-shadow: 2px 3px 0 var(--noctra-color-ink); transform: rotate(-.45deg); }
 .noctra-app .noctra-lineup-list li.is-headliner time { color: var(--noctra-color-ink); }
 .noctra-app .noctra-lineup-list li.is-headliner h2 { font-size: 30px; }
