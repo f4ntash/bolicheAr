@@ -1,57 +1,59 @@
-import { useEffect, useRef, useState } from 'react'
-import { ArrowRight, Gift, Sparkles, WandSparkles } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { ArrowRight, Check, Compass, Gift, LockKeyhole, Sparkles, Ticket } from 'lucide-react'
 import type { ExperienceRuntime } from '../../../types'
 import { assetUrl } from '../../../utils/assets'
-import NoctraHeader from '../components/NoctraHeader/NoctraHeader'
-import './NoctraSponsorActivation.css'
+import { NoctraSectionFrame } from '../NoctraEditorialSections'
 
 type NoctraSponsorActivationProps = {
   experience: ExperienceRuntime
+  editionId: string
+  isFound: boolean
   onBack: () => void
+  onFind: () => void
+  onPhoto: () => void
   onPassport: () => void
   onContinue: () => void
 }
 
-const novadrops = [
-  { eyebrow: 'NOVA · NIGHT DROP 01', title: 'Un brindis para el próximo track', benefit: 'SAMPLING FICTICIO' },
-  { eyebrow: 'NOVA · NIGHT DROP 02', title: 'Un acceso preferente al backstage', benefit: 'BENEFICIO CONCEPTUAL' },
-  { eyebrow: 'NOVA · NIGHT DROP 03', title: 'Un frame exclusivo para tu historia', benefit: 'CONTENIDO DE MARCA' },
-]
+export default function NoctraSponsorActivation({ experience, editionId, isFound, onBack, onFind, onPhoto, onPassport, onContinue }: NoctraSponsorActivationProps) {
+  const [hasSavedMoment, setHasSavedMoment] = useState(false)
+  const drop = experience.config.engagement?.drop
+  const activeDrop = experience.config.stations.find((station) => station.id === 'nova-drop')
+  const steps = [
+    { label: 'ENCONTRAR', done: isFound },
+    { label: 'ACTIVAR', done: isFound },
+    { label: 'DESBLOQUEAR', done: isFound },
+    { label: 'GUARDAR', done: hasSavedMoment },
+  ]
+  useEffect(() => {
+    let active = true
+    if (!isFound) { setHasSavedMoment(false); return () => { active = false } }
+    void import('../noctraMoments').then(({ getLatestNoctraMoment }) => getLatestNoctraMoment('nova-drop', editionId)).then((moment) => {
+      if (active) setHasSavedMoment(Boolean(moment?.photo))
+    })
+    return () => { active = false }
+  }, [editionId, isFound])
 
-export default function NoctraSponsorActivation({ experience, onBack, onPassport, onContinue }: NoctraSponsorActivationProps) {
-  const [revealedIndex, setRevealedIndex] = useState<number | null>(null)
-  const [isRevealing, setIsRevealing] = useState(false)
-  const timerRef = useRef<number | undefined>(undefined)
-  useEffect(() => () => { if (timerRef.current) window.clearTimeout(timerRef.current) }, [])
-  const activeDrop = experience.config.engagement?.drop
-  const revealDrop = () => {
-    if (isRevealing) return
-    setIsRevealing(true)
-    timerRef.current = window.setTimeout(() => {
-      setRevealedIndex(Math.floor(Math.random() * novadrops.length))
-      setIsRevealing(false)
-    }, 760)
-  }
-  const drop = revealedIndex === null ? null : novadrops[revealedIndex]
-
-  return <section className="phone-screen noctra-sponsor">
-    <div className="noctra-sponsor__art" style={{ backgroundImage: `url(${experience.config.stations.find((station) => station.id === 'nova-drop')?.image})` }} aria-hidden="true" />
-    <div className="noctra-sponsor__glow" aria-hidden="true" />
-    <div className="noctra-sponsor__rings" aria-hidden="true"><i /><i /><i /><i /></div>
-    <NoctraHeader page="Sponsor experience" onBack={onBack} />
-    <main className="noctra-sponsor__content">
-      <div className="noctra-sponsor__brand"><img src={assetUrl('experiences/noctra/nova-mark.svg')} alt="NOVA" /><span>UNA EXPERIENCIA NOVA</span></div>
-      <p className="noctra-eyebrow">UNA ACTIVACIÓN EXCLUSIVA <span /></p>
-      <h1>NOVA<br /><em>Drop.</em></h1>
-      <p className="noctra-sponsor__intro">La pista se detiene. La luz te encuentra.</p>
-      {activeDrop && <p className="noctra-sponsor__availability"><strong>{activeDrop.title}</strong><span>{activeDrop.description}</span></p>}
-      <div className={`noctra-sponsor__reveal ${isRevealing ? 'is-revealing' : ''} ${drop ? 'is-open' : ''}`} aria-live="polite">
-        {drop ? <><span className="noctra-sponsor__drop-label"><Gift size={14} /> {drop.eyebrow}</span><strong>{drop.title}</strong><small>{drop.benefit} · DEMO CONCEPTUAL</small></> : <><span className="noctra-sponsor__orb"><i /><i /><i /></span><small>{isRevealing ? 'BUSCANDO TU DROP…' : 'TU ACTIVACIÓN TE ESPERA'}</small></>}
-      </div>
-      {!drop ? <button type="button" className="noctra-sponsor__button" onClick={revealDrop} disabled={isRevealing}><WandSparkles size={16} /> {isRevealing ? 'Revelando' : 'Tocar para revelar'} <ArrowRight size={16} /></button> : <button type="button" className="noctra-sponsor__button" onClick={onPassport}><Sparkles size={16} /> Guardar en mi Passport <ArrowRight size={16} /></button>}
-      <p className="noctra-sponsor__note">{drop ? 'Beneficio conceptual · Demo NOCTRA' : 'UNA ACTIVACIÓN INTERACTIVA · MENDOZA 2026'}</p>
-    </main>
-    <button type="button" className="noctra-sponsor__continue" onClick={onContinue}>Volver al recorrido <span>↗</span></button>
-    <span className="noctra-sponsor__location">{experience.config.location} · {experience.config.eventDate}</span>
-  </section>
+  return <NoctraSectionFrame section="ACTIVACIÓN DE MARCA" onBack={onBack} className="noctra-nova-section">
+    <div className="noctra-nova__brand"><img src={assetUrl('experiences/noctra/nova-mark.svg')} alt="NOVA" /><span>MARCA FICTICIA · NIGHT 03</span></div>
+    <div className="noctra-nova__hero">
+      <div className="noctra-nova__hero-copy"><span>{isFound ? 'DROP ENCONTRADO' : 'ACTIVACIÓN EXCLUSIVA'}</span><h1>NOVA<br />DROP.</h1><p>Encontrá el drop. Desbloqueá una pieza especial.</p></div>
+      <img className="noctra-nova__hero-art" src={assetUrl(isFound ? 'experiences/noctra/passes/noctra-pass-nova-pass.svg' : 'experiences/noctra/rewards/noctra-reward-nova-drop.svg')} alt={isFound ? 'NOVA Drop collectible pass' : 'NOVA Drop conceptual reward'} />
+    </div>
+    <div className="noctra-nova__status" role="status">
+      {isFound ? <Check size={19} /> : <LockKeyhole size={18} />}
+      <div><strong>{hasSavedMoment ? 'RECUERDO GUARDADO · NOVA DROP' : isFound ? 'COMPLETADO · NOVA DROP' : drop?.title ?? 'DROP BLOQUEADO'}</strong><span>{isFound ? 'NOVA Pass y frame habilitados en Photo Studio.' : drop?.description ?? activeDrop?.description}</span></div>
+    </div>
+    <div className="noctra-nova__steps" aria-label="Progreso de la activación">
+      {steps.map((step) => <span className={step.done ? 'is-done' : ''} key={step.label}>{step.done && <Check size={11} />}{step.label}</span>)}
+    </div>
+    <div className="noctra-nova__actions">
+      {isFound
+        ? <button type="button" className="noctra-editorial__primary" onClick={onPhoto}><Sparkles size={17} /> CREAR FOTO NOVA <ArrowRight size={16} /></button>
+        : <button type="button" className="noctra-editorial__primary" onClick={onFind}><Compass size={17} /> ENCONTRAR DROP <ArrowRight size={16} /></button>}
+      {isFound && <button type="button" className="noctra-nova__secondary" onClick={onPassport}><Ticket size={16} /> VER EN PASSPORT</button>}
+      <button type="button" className="noctra-nova__secondary" onClick={onContinue}>VOLVER AL RECORRIDO <ArrowRight size={15} /></button>
+    </div>
+    <p className="noctra-nova__disclaimer"><Gift size={13} /> Activación conceptual de NOVA. Sin beneficio comercial real.</p>
+  </NoctraSectionFrame>
 }

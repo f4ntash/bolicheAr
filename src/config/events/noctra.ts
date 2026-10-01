@@ -63,13 +63,14 @@ export const noctra: ExperienceConfig = {
     microRewards: [
       { id: 'noctra-frame', stationId: 'entrance', title: 'Frame NOCTRA', message: 'Frame NOCTRA desbloqueado.', photoFrameIds: ['entrance'] },
       { id: 'main-stage-frame', stationId: 'main-stage', title: 'Frame MAIN STAGE', message: 'Frame MAIN STAGE desbloqueado.', photoFrameIds: ['main-stage'] },
-      { id: 'hidden-frequency-badge', stationId: 'hidden-frequency', title: 'Secret Badge', message: 'I WAS HERE desbloqueado + Secret Badge.', photoFrameIds: ['nova-drop'] },
-      { id: 'nova-opportunity', stationId: 'nova-drop', title: 'Oportunidad NOVA', message: '+1 oportunidad para la recompensa final.', progressBonus: 1 },
+      { id: 'hidden-frequency-badge', stationId: 'hidden-frequency', title: 'Secret Badge', message: 'I WAS HERE desbloqueado + Secret Badge.', photoFrameIds: ['hidden-frequency'] },
+      { id: 'nova-opportunity', stationId: 'nova-drop', title: 'NOVA Drop', message: 'NOVA Pass y frame especial desbloqueados +1 oportunidad para la recompensa final.', photoFrameIds: ['nova-drop'], progressBonus: 1 },
     ],
     photoStudioUnlocks: [
       { filterId: 'entrance' },
       { filterId: 'main-stage', requiredStationId: 'main-stage' },
-      { filterId: 'nova-drop', requiredStationId: 'hidden-frequency' },
+      { filterId: 'hidden-frequency', requiredStationId: 'hidden-frequency' },
+      { filterId: 'nova-drop', requiredStationId: 'nova-drop' },
     ],
     secretHints: {
       showDetectedAfter: 2,
@@ -229,7 +230,8 @@ export const noctra: ExperienceConfig = {
     filters: [
       { id: 'entrance', name: 'NOCTRA', image: art('entrance'), effect: 'contrast(1.08) saturate(.88)', background: art('entrance'), overlayColor: '#f3eee7' },
       { id: 'main-stage', name: 'MAIN STAGE', image: art('main-stage'), effect: 'contrast(1.12) saturate(.9)', background: art('main-stage'), overlayColor: '#f3eee7' },
-      { id: 'nova-drop', name: 'I WAS HERE', image: art('nova-drop'), effect: 'contrast(1.08) saturate(.86)', background: art('nova-drop'), overlayColor: '#f3eee7' },
+      { id: 'hidden-frequency', name: 'SECRET FOUND', image: art('hidden-frequency'), effect: 'contrast(1.2) saturate(.68) brightness(.84)', background: art('hidden-frequency'), overlayColor: '#f3eee7' },
+      { id: 'nova-drop', name: 'NOVA DROP', image: art('nova-drop'), effect: 'contrast(1.12) saturate(1.08)', background: art('nova-drop'), overlayColor: '#f3eee7' },
     ],
   },
   stations: [

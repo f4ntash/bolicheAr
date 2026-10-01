@@ -1043,3 +1043,433 @@
   .noctra-app .noctra-sponsor__art,
   .noctra-app .noctra-moment-tile { transition: none; animation: none; }
 }
+
+/* Focused UX corrections: keep NOCTRA's collage, make navigation and scanning readable. */
+.noctra-app .noctra-menu {
+  display: flex;
+  height: auto;
+  min-height: 100svh;
+  flex-direction: column;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: 0 20px calc(20px + env(safe-area-inset-bottom, 0px));
+  background: var(--noctra-color-paper) url('/noctra/experiences/noctra/textures/noctra-texture-paper-grain.svg') center / 540px auto;
+  color: var(--noctra-color-ink);
+}
+.noctra-app .noctra-menu__header {
+  position: relative;
+  top: auto;
+  right: auto;
+  left: auto;
+  display: flex;
+  min-height: 62px;
+  margin: 0 -20px;
+  padding: calc(8px + env(safe-area-inset-top, 0px)) 20px 8px;
+  border-bottom: 1px solid rgb(17 17 17 / 18%);
+  background: var(--noctra-color-paper);
+  color: var(--noctra-color-ink);
+}
+.noctra-app .noctra-menu__header > div { display: flex; min-width: 0; align-items: center; gap: 10px; }
+.noctra-app .noctra-menu__header img { width: 30px; height: 30px; object-fit: contain; }
+.noctra-app .noctra-menu__header span { font: 800 10px/1.2 var(--noctra-font-meta); letter-spacing: .11em; }
+.noctra-app .noctra-menu__header .icon-button { width: 44px; height: 44px; border: 1.5px solid var(--noctra-color-ink); background: var(--noctra-color-paper); }
+.noctra-app .noctra-menu__main { display: flex; width: min(100%, 560px); margin: 0 auto; flex: 1 0 auto; flex-direction: column; gap: 13px; }
+.noctra-app .noctra-menu__intro { padding-top: 18px; }
+.noctra-app .noctra-menu__intro > span { display: inline-block; margin-bottom: 9px; padding: 6px 8px; background: var(--noctra-color-pink); color: var(--noctra-color-ink); font: 800 10px/1 var(--noctra-font-meta); letter-spacing: .1em; transform: rotate(-2deg); }
+.noctra-app .noctra-menu__intro h1 { margin: 0; color: var(--noctra-color-ink); font: 900 clamp(34px, 9vw, 46px)/.86 var(--noctra-font-display); letter-spacing: -.05em; }
+.noctra-app .noctra-menu__links { position: relative; z-index: 1; display: grid; gap: 8px; margin: 0; padding: 0; }
+.noctra-app .noctra-menu__links button { display: grid; width: 100%; min-height: 48px; grid-template-columns: 22px minmax(0, 1fr) 18px; gap: 10px; align-items: center; padding: 0 12px; border: 1.5px solid var(--noctra-color-ink); background: var(--noctra-color-paper); box-shadow: 2px 3px 0 var(--noctra-color-ink); color: var(--noctra-color-ink); font: 800 12px/1.1 var(--noctra-font-meta); letter-spacing: .08em; }
+.noctra-app .noctra-menu__links button:first-child { background: var(--noctra-color-lime); color: var(--noctra-color-ink); }
+.noctra-app .noctra-menu__links button svg:first-child { color: var(--noctra-color-blue); }
+.noctra-app .noctra-menu__links button:first-child svg:first-child { color: var(--noctra-color-ink); }
+.noctra-app .noctra-menu__links button svg:last-child { justify-self: end; color: var(--noctra-color-ink); }
+.noctra-app .noctra-menu__photo {
+  position: relative;
+  inset: auto;
+  display: block;
+  width: 100%;
+  height: clamp(112px, 28vw, 142px);
+  flex: 0 0 auto;
+  margin: 1px 0 0;
+  overflow: hidden;
+  border: 4px solid var(--noctra-color-paper);
+  background: var(--noctra-color-blue);
+  box-shadow: 3px 4px 0 var(--noctra-color-ink);
+  transform: rotate(-.8deg);
+}
+.noctra-app .menu-screen.noctra-menu .noctra-menu__photo { inset: auto; height: clamp(112px, 28vw, 142px); background-image: none !important; transform: rotate(-.8deg); }
+.noctra-app .noctra-menu__photo img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: center 44%; }
+.noctra-app .noctra-menu__photo figcaption { position: absolute; right: 0; bottom: 0; left: 0; display: flex; min-height: 34px; align-items: center; justify-content: space-between; gap: 8px; padding: 6px 9px; background: linear-gradient(90deg, rgb(17 17 17 / 88%), rgb(17 17 17 / 54%)); color: var(--noctra-color-paper); font: 700 9px/1.2 var(--noctra-font-meta); letter-spacing: .07em; }
+.noctra-app .noctra-menu__photo figcaption strong { color: var(--noctra-color-lime); font-weight: 900; }
+.noctra-app .noctra-menu__utilities { display: flex; flex-wrap: wrap; gap: 7px; }
+.noctra-app .noctra-menu__utilities span { display: flex; min-height: 32px; align-items: center; gap: 7px; padding: 0 9px; border: 1px solid var(--noctra-color-ink); background: var(--noctra-color-paper); color: var(--noctra-color-ink); font: 700 10px/1 var(--noctra-font-meta); }
+.noctra-app .noctra-menu__utilities svg { color: var(--noctra-color-pink); }
+.noctra-app .noctra-menu__reset { display: flex; min-height: 38px; justify-content: flex-start; margin: 0; padding: 8px 0 0; border: 0; border-top: 1px solid rgb(17 17 17 / 20%); background: transparent; color: var(--noctra-color-muted); font: 700 10px/1 var(--noctra-font-meta); letter-spacing: .08em; text-align: left; text-transform: uppercase; }
+.noctra-app .noctra-menu__footer { position: relative; z-index: 1; right: auto; bottom: auto; left: auto; display: flex; width: min(100%, 560px); min-height: 52px; margin: 13px auto 0; padding: 11px 0 0; align-items: flex-end; border-top: 1px solid rgb(17 17 17 / 20%); color: var(--noctra-color-ink); }
+.noctra-app .noctra-menu__footer p { color: var(--noctra-color-ink); font-size: 12px; line-height: 1.3; }
+.noctra-app .noctra-menu__footer span { color: var(--noctra-color-ink); font: 800 9px/1 var(--noctra-font-meta); }
+
+.noctra-app .noctra-discover {
+  display: grid;
+  height: 100svh;
+  min-height: 100svh;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  gap: 12px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: 0 20px calc(17px + env(safe-area-inset-bottom, 0px));
+  background: var(--noctra-color-paper) url('/noctra/experiences/noctra/textures/noctra-texture-paper-grain.svg') center / 540px auto !important;
+  color: var(--noctra-color-ink);
+}
+.noctra-app .noctra-discover > .noctra-discover__header { position: relative; top: auto; right: auto; left: auto; min-height: 59px; margin: 0 -20px; padding: calc(7px + env(safe-area-inset-top, 0px)) 20px 7px; border-bottom: 1px solid rgb(17 17 17 / 18%); background: var(--noctra-color-paper); color: var(--noctra-color-ink); }
+.noctra-app .noctra-discover__header > div { display: flex; align-items: center; gap: 9px; }
+.noctra-app .noctra-discover__header img { width: 27px; height: 27px; object-fit: contain; }
+.noctra-app .noctra-discover__header span { font: 800 9px/1.2 var(--noctra-font-meta); letter-spacing: .1em; }
+.noctra-app .noctra-discover__header .discover-close-button { width: 44px; height: 44px; border: 1.5px solid var(--noctra-color-ink); background: var(--noctra-color-paper); color: var(--noctra-color-ink); }
+.noctra-app .noctra-discover__copy { margin: 0; padding: 8px 0 2px; text-align: left; }
+.noctra-app .noctra-discover__eyebrow { display: inline-block; margin-bottom: 9px; padding: 6px 8px; background: var(--noctra-color-pink); color: var(--noctra-color-ink); font: 800 9px/1 var(--noctra-font-meta); letter-spacing: .1em; transform: rotate(-2deg); }
+.noctra-app .noctra-discover__copy h1 { max-width: 14ch; margin: 0 0 7px; color: var(--noctra-color-ink); font: 900 clamp(30px, 8vw, 38px)/.88 var(--noctra-font-display); letter-spacing: -.045em; text-transform: uppercase; }
+.noctra-app .noctra-discover__copy p { max-width: 38ch; margin: 0; color: var(--noctra-color-ink); font: 500 13px/1.4 var(--noctra-font-body); }
+.noctra-app .noctra-discover__scanner { position: relative; z-index: 1; display: grid; min-height: 250px; align-self: stretch; place-items: center; }
+.noctra-app .noctra-discover__camera-window { position: relative; width: min(100%, 430px); height: min(43svh, 395px); min-height: 250px; overflow: hidden; border: 5px solid var(--noctra-color-paper); outline: 1.5px solid var(--noctra-color-ink); background-color: var(--noctra-color-blue); background-position: center; background-size: cover; box-shadow: 4px 5px 0 var(--noctra-color-ink); transform: rotate(.7deg); }
+.noctra-app .noctra-discover__camera-window::before { position: absolute; z-index: 1; inset: 0; background: linear-gradient(180deg, rgb(17 17 17 / 12%), transparent 45%, rgb(17 17 17 / 36%)); content: ''; pointer-events: none; }
+.noctra-app .noctra-discover__camera-window .discover-camera { z-index: 0; width: 100%; height: 100%; object-fit: cover; object-position: center; }
+.noctra-app .noctra-discover__camera-window .reticle { z-index: 2; top: 50%; right: 14%; left: 14%; height: min(48%, 180px); transform: translateY(-50%); }
+.noctra-app .noctra-discover__camera-window .reticle span { width: 31px; height: 31px; border-color: var(--noctra-color-lime); filter: drop-shadow(1px 1px 0 var(--noctra-color-ink)); }
+.noctra-app .noctra-discover__camera-window .station-logo-mark { padding: 11px; border: 1px solid rgb(243 238 231 / 70%); background: rgb(17 17 17 / 70%); color: var(--noctra-color-paper); }
+.noctra-app .noctra-discover__camera-window .station-logo-mark img { width: 34px; height: 34px; object-fit: contain; }
+.noctra-app .noctra-discover__camera-window .station-logo-mark small { color: var(--noctra-color-paper); font: 800 8px/1 var(--noctra-font-meta); letter-spacing: .12em; }
+.noctra-app .noctra-discover__scan-line { position: absolute; z-index: 2; top: 50%; right: 8%; left: 8%; height: 2px; background: var(--noctra-color-pink); box-shadow: 0 0 0 1px rgb(17 17 17 / 45%); pointer-events: none; }
+.noctra-app .noctra-discover__tap-label,
+.noctra-app .noctra-discover__frame-label { position: absolute; z-index: 3; right: 8px; bottom: 8px; padding: 6px 7px; background: var(--noctra-color-lime); color: var(--noctra-color-ink); font: 800 8px/1 var(--noctra-font-meta); letter-spacing: .08em; }
+.noctra-app .noctra-discover__frame-label { top: 8px; right: auto; bottom: auto; left: 8px; background: var(--noctra-color-paper); }
+.noctra-app .noctra-discover__notice { position: relative; z-index: 3; inset: auto; margin: 0; padding: 9px 10px; border: 1.5px solid var(--noctra-color-ink); background: var(--noctra-color-pink); box-shadow: 2px 3px 0 var(--noctra-color-ink); color: var(--noctra-color-ink); font: 700 12px/1.35 var(--noctra-font-body); text-align: left; }
+.noctra-app .noctra-discover__status { position: relative; z-index: 2; right: auto; bottom: auto; left: auto; display: flex; min-height: 54px; align-items: center; flex-direction: row; gap: 11px; text-align: left; }
+.noctra-app .noctra-discover__status .round-scan { width: 42px; height: 42px; flex: 0 0 auto; border: 2px solid var(--noctra-color-ink); border-radius: 0; background: var(--noctra-color-lime); color: var(--noctra-color-ink); }
+.noctra-app .noctra-discover__status .scan-status { margin: 0; color: var(--noctra-color-ink); font: 900 10px/1.3 var(--noctra-font-meta); letter-spacing: .08em; }
+.noctra-app .noctra-discover__status .scan-status span { color: var(--noctra-color-muted); font: 600 11px/1.35 var(--noctra-font-body); letter-spacing: 0; text-transform: none; }
+
+/* The selected poster now drives the actual camera frame, not just the thumbnail. */
+.noctra-app .studio-screen.noctra-studio .studio-media[data-frame='entrance']::after { background-image: url('/noctra/experiences/noctra/frames/noctra-frame-noctra-9x16.svg'); }
+.noctra-app .studio-screen.noctra-studio .studio-media[data-frame='main-stage']::after { background-image: url('/noctra/experiences/noctra/frames/noctra-frame-main-stage-9x16.svg'); }
+.noctra-app .studio-screen.noctra-studio .studio-media[data-frame='hidden-frequency']::after { background-image: url('/noctra/experiences/noctra/frames/noctra-frame-secret-found-9x16.svg'); }
+.noctra-app .studio-screen.noctra-studio .studio-media[data-frame='nova-drop']::after { background-image: url('/noctra/experiences/noctra/frames/noctra-frame-night-03-9x16.svg'); }
+.noctra-app .share-art.noctra-photo-preview[data-frame='entrance']::after { background-image: url('/noctra/experiences/noctra/frames/noctra-frame-noctra-9x16.svg'); }
+.noctra-app .share-art.noctra-photo-preview[data-frame='main-stage']::after { background-image: url('/noctra/experiences/noctra/frames/noctra-frame-main-stage-9x16.svg'); }
+.noctra-app .share-art.noctra-photo-preview[data-frame='hidden-frequency']::after { background-image: url('/noctra/experiences/noctra/frames/noctra-frame-secret-found-9x16.svg'); }
+.noctra-app .share-art.noctra-photo-preview[data-frame='nova-drop']::after { background-image: url('/noctra/experiences/noctra/frames/noctra-frame-night-03-9x16.svg'); }
+.noctra-app .studio-screen.noctra-studio .studio-format-stamp { position: absolute; z-index: 5; top: 10px; right: 10px; display: flex; min-width: 72px; flex-direction: column; gap: 3px; padding: 6px 7px; border: 1.5px solid var(--noctra-color-ink); background: var(--noctra-color-paper); box-shadow: 2px 2px 0 var(--noctra-color-ink); color: var(--noctra-color-ink); transform: rotate(2deg); }
+.noctra-app .studio-screen.noctra-studio .studio-format-stamp small { color: var(--noctra-color-muted); font: 800 7px/1 var(--noctra-font-meta); letter-spacing: .1em; }
+.noctra-app .studio-screen.noctra-studio .studio-format-stamp strong { color: var(--noctra-color-ink); font: 900 9px/1 var(--noctra-font-meta); white-space: nowrap; }
+.noctra-app .studio-screen.noctra-studio .studio-media[data-format='foto'] { height: min(46svh, calc(100svh - 430px)); aspect-ratio: 4 / 5; }
+.noctra-app .studio-screen.noctra-studio .studio-media[data-format='post'] { height: min(39svh, calc(100svh - 500px)); aspect-ratio: 1 / 1; }
+.noctra-app .studio-screen.noctra-studio .studio-media[data-format='story'] { height: min(55svh, calc(100svh - 420px)); aspect-ratio: 9 / 16; }
+.noctra-app .studio-screen.noctra-studio .studio-options button.active,
+.noctra-app .studio-screen.noctra-studio .studio-options button.active small,
+.noctra-app .studio-screen.noctra-studio .studio-actions button:last-child,
+.noctra-app .studio-screen.noctra-studio .studio-tabs button.active { color: var(--noctra-color-ink); }
+.noctra-app .noctra-memory__menu,
+.noctra-app .menu-links button:first-child,
+.noctra-app .passport-stats > span,
+.noctra-app .engagement-reward-screen__badge,
+.noctra-app .noctra-reward-entry button,
+.noctra-app .noctra-reward-entry button span,
+.noctra-app .noctra-reward-entry button strong,
+.noctra-app .noctra-night-recap__reward,
+.noctra-app .noctra-night-recap__reward span,
+.noctra-app .noctra-night-recap__reward small,
+.noctra-app .noctra-night-recap__reward strong,
+.noctra-app .noctra-sponsor__reveal,
+.noctra-app .noctra-sponsor__reveal > strong,
+.noctra-app .studio-screen.noctra-studio .studio-feedback,
+.noctra-app .studio-screen.noctra-studio .studio-options button.active,
+.noctra-app .noctra-reveal__reward,
+.noctra-app .noctra-night-link { color: var(--noctra-color-ink); }
+
+@media (min-width: 700px) {
+  .noctra-app .noctra-menu { padding-right: max(24px, calc((100vw - 620px) / 2)); padding-left: max(24px, calc((100vw - 620px) / 2)); }
+  .noctra-app .noctra-menu__header { margin-right: calc(max(24px, (100vw - 620px) / 2) * -1); margin-left: calc(max(24px, (100vw - 620px) / 2) * -1); padding-right: max(24px, calc((100vw - 620px) / 2)); padding-left: max(24px, calc((100vw - 620px) / 2)); }
+  .noctra-app .noctra-discover { grid-template-columns: minmax(0, .86fr) minmax(300px, 1.14fr); grid-template-rows: auto minmax(0, 1fr) auto; grid-template-areas: 'header header' 'copy scanner' 'status status'; gap: 20px 32px; align-items: center; padding-right: max(32px, calc((100vw - 920px) / 2)); padding-left: max(32px, calc((100vw - 920px) / 2)); }
+  .noctra-app .noctra-discover > .noctra-discover__header { grid-area: header; margin-right: calc(max(32px, (100vw - 920px) / 2) * -1); margin-left: calc(max(32px, (100vw - 920px) / 2) * -1); padding-right: max(32px, calc((100vw - 920px) / 2)); padding-left: max(32px, calc((100vw - 920px) / 2)); }
+  .noctra-app .noctra-discover__copy { grid-area: copy; }
+  .noctra-app .noctra-discover__scanner { grid-area: scanner; }
+  .noctra-app .noctra-discover__camera-window { width: min(100%, 430px); height: min(58svh, 560px); }
+  .noctra-app .noctra-discover__status { grid-area: status; }
+  .noctra-app .studio-screen.noctra-studio .studio-media[data-format='foto'] { height: min(48svh, calc(100svh - 350px)); }
+  .noctra-app .studio-screen.noctra-studio .studio-media[data-format='post'] { height: min(43svh, calc(100svh - 390px)); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .noctra-app .noctra-menu__photo,
+  .noctra-app .noctra-menu__intro > span,
+  .noctra-app .noctra-discover__camera-window,
+  .noctra-app .noctra-discover__eyebrow,
+  .noctra-app .studio-format-stamp { transform: none; }
+}
+
+/* VISUAL CORRECTIONS — preserve the collage while making mobile text and controls usable. */
+.noctra-app .bottom-nav button { font-size: 11px; letter-spacing: .04em; }
+.noctra-app .topbar,
+.noctra-app .topbar-page { font-size: 11px; }
+.noctra-app .noctra-header__page { color: var(--noctra-color-muted); font-size: 11px; letter-spacing: .08em; }
+.noctra-app .noctra-home-eyebrow { font-size: 11px; }
+.noctra-app .noctra-home-cta { font-size: 14px; }
+.noctra-app .noctra-home-loop p,
+.noctra-app .noctra-home-loop p strong,
+.noctra-app .noctra-home-loop > span { font-size: 11px; line-height: 1.4; letter-spacing: .04em; }
+
+.noctra-app .noctra-memory__edition { font-size: 11px; line-height: 1.3; }
+.noctra-app .noctra-memory__eyebrow { font-size: 11px; }
+.noctra-app .noctra-memory__record strong { font-size: 14px; }
+.noctra-app .noctra-memory__record > div span,
+.noctra-app .noctra-memory__record > small { color: var(--noctra-color-ink); font-size: 11px; line-height: 1.35; letter-spacing: .035em; }
+.noctra-app .noctra-memory__signal span { font-size: 11px; }
+.noctra-app .noctra-memory__signal strong { font-size: 12px; }
+.noctra-app .noctra-memory__reward > span:first-child,
+.noctra-app .noctra-memory__locked { font-size: 11px; line-height: 1.25; letter-spacing: .035em; }
+.noctra-app .noctra-memory__reward > strong { font-size: 17px; }
+.noctra-app .noctra-memory__footer > p { font-size: 11px; line-height: 1.35; letter-spacing: .025em; }
+.noctra-app .noctra-memory__progress { font-size: 11px; line-height: 1.35; }
+.noctra-app .noctra-memory__cta { font-size: 14px; }
+.noctra-app .noctra-memory__copy h1 { text-shadow: 2px 2px 0 var(--noctra-color-paper), 4px 4px 0 var(--noctra-color-ink); }
+.noctra-app .stations-tabs button { font-size: 14px; line-height: 1.2; }
+.noctra-app .exploration-progress-heading { font-size: 12px; line-height: 1.35; }
+.noctra-app .section-label { font-size: 12px; line-height: 1.35; letter-spacing: .06em; }
+.noctra-app .station-tile .tile-copy strong { font-size: 14px; line-height: 1.15; }
+.noctra-app .station-tile .tile-copy small { font-size: 11px; line-height: 1.35; }
+.noctra-app .stations-screen .topbar-page { font-size: 11px; }
+.noctra-app .detail-hero > span { font-size: 11px; line-height: 1.3; letter-spacing: .04em; }
+.noctra-app .event-strip p { font-size: 11px; line-height: 1.35; }
+.noctra-app .secret-strip__copy span { font-size: 11px; line-height: 1.4; }
+.noctra-app .engagement-card__heading,
+.noctra-app .engagement-card__heading span,
+.noctra-app .engagement-card__reward small { color: var(--noctra-color-ink); font-size: 11px; line-height: 1.35; letter-spacing: .035em; }
+.noctra-app .engagement-card__action { min-height: 48px; font-size: 14px; line-height: 1.25; }
+.noctra-app .passport-heading .eyebrow { font-size: 12px; }
+.noctra-app .passport-stats > span { font-size: 11px; line-height: 1.35; }
+.noctra-app .ticket p { font-size: 12px; line-height: 1.45; }
+.noctra-app .ticket-numbers small { font-size: 11px; line-height: 1.35; }
+.noctra-app .history-row span { font-size: 12px; line-height: 1.2; }
+.noctra-app .history-row small,
+.noctra-app .passport-copy { font-size: 11px; line-height: 1.45; }
+.noctra-app .noctra-moments-section__heading p { font-size: 11px; line-height: 1.35; }
+.noctra-app .noctra-moment-tile__image > span { font-size: 11px; line-height: 1.25; }
+.noctra-app .noctra-moment-tile__copy { min-height: 88px; }
+.noctra-app .noctra-moment-tile__copy > strong { font-size: 14px; line-height: 1.2; }
+.noctra-app .noctra-moment-tile__copy small,
+.noctra-app .noctra-moment-tile__copy p,
+.noctra-app .noctra-moment-tile__copy em { font-size: 11px; line-height: 1.35; letter-spacing: .025em; }
+.noctra-app .noctra-night-link { font-size: 14px; }
+.noctra-app .noctra-reveal__header > span,
+.noctra-app .noctra-reveal__eyebrow,
+.noctra-app .noctra-reveal__edition,
+.noctra-app .noctra-reveal__reward span { font-size: 11px; line-height: 1.35; letter-spacing: .06em; }
+.noctra-app .noctra-reveal__reward strong { font-size: 14px; line-height: 1.25; }
+.noctra-app .noctra-reveal__actions .cream-button,
+.noctra-app .noctra-reveal__continue { font-size: 14px; }
+.noctra-app .noctra-night-recap__header > span,
+.noctra-app .noctra-night-recap__eyebrow,
+.noctra-app .noctra-night-recap__edition,
+.noctra-app .noctra-night-recap__stats span,
+.noctra-app .noctra-night-recap__collection > header,
+.noctra-app .noctra-night-recap__grid .noctra-moment-tile__copy small,
+.noctra-app .noctra-night-recap__grid .noctra-moment-tile__copy p,
+.noctra-app .noctra-crew-moment > div:first-child span,
+.noctra-app .noctra-crew-moment > div:first-child small,
+.noctra-app .noctra-night-recap__reward span,
+.noctra-app .noctra-night-recap__reward small { font-size: 11px; line-height: 1.35; letter-spacing: .035em; }
+.noctra-app .noctra-night-recap__grid .noctra-moment-tile__copy > strong { font-size: 12px; line-height: 1.2; }
+.noctra-app .noctra-night-recap__empty button,
+.noctra-app .noctra-night-recap__share,
+.noctra-app .noctra-night-recap__back { min-height: 44px; font-size: 14px; }
+.noctra-app .share-actions button,
+.noctra-app .share-screen .back-edit { font-size: 14px; line-height: 1.35; }
+.noctra-app .noctra-sponsor__brand span,
+.noctra-app .noctra-sponsor__availability,
+.noctra-app .noctra-sponsor__reveal > small,
+.noctra-app .noctra-sponsor__drop-label,
+.noctra-app .noctra-sponsor__location { font-size: 11px; line-height: 1.4; letter-spacing: .04em; }
+.noctra-app .noctra-sponsor__button,
+.noctra-app .noctra-sponsor__continue { font-size: 14px; line-height: 1.3; }
+.noctra-app .noctra-sponsor__note { font-size: 12px; line-height: 1.45; }
+
+@media (max-width: 699px) {
+  .noctra-app .home-hero.noctra-memory { min-height: 100svh; height: 100svh; }
+  .noctra-app .noctra-memory__copy { top: 14%; left: 5%; width: 90%; }
+  .noctra-app .noctra-memory__copy h1 { font-size: clamp(38px, 10vw, 46px); line-height: .82; }
+  .noctra-app .noctra-memory__scene { top: 35%; right: 4%; left: auto; width: 76vw; height: 40%; }
+  .noctra-app .noctra-memory__record { bottom: 27%; left: 5%; max-width: 66%; padding: 10px 12px; }
+  .noctra-app .noctra-memory__reward { right: 4%; bottom: 17%; max-width: 59%; padding: 9px 11px; }
+  .noctra-app .noctra-memory__reward > strong { font-size: 17px; }
+  .noctra-app .noctra-memory__footer { bottom: calc(84px + env(safe-area-inset-bottom, 0px)); left: 6%; width: 72%; }
+  .noctra-app .noctra-memory__footer > p { max-width: 100%; }
+  .noctra-app .noctra-memory__cta { bottom: calc(20px + env(safe-area-inset-bottom, 0px)); width: min(58%, 250px); min-width: 190px; }
+}
+
+@media (min-width: 700px) and (max-width: 899px) {
+  .noctra-app .home-hero.noctra-memory { min-height: 100svh; height: 100svh; }
+  .noctra-app .noctra-memory__copy { top: 13%; left: 5%; width: 87%; }
+  .noctra-app .noctra-memory__copy h1 { font-size: clamp(52px, 7.3vw, 66px); line-height: .82; }
+  .noctra-app .noctra-memory__scene { top: 38%; right: 5%; width: min(56vw, 500px); height: 53%; }
+  .noctra-app .noctra-memory__record { bottom: 24%; left: 5%; }
+  .noctra-app .noctra-memory__reward { right: 5%; bottom: 14%; max-width: 40%; }
+  .noctra-app .noctra-memory__footer { bottom: calc(84px + env(safe-area-inset-bottom, 0px)); left: 5%; width: 40%; }
+  .noctra-app .noctra-memory__cta { left: 5%; }
+}
+
+/* The reward title leads; status, simplified pass, description and action follow it. */
+.noctra-app .engagement-reward-screen { min-height: 100svh; height: auto; overflow-x: hidden; overflow-y: auto; }
+.noctra-app .engagement-reward-screen__header { font-size: 11px; }
+.noctra-app .engagement-reward-screen__header > span:last-child { font-size: 11px; }
+.noctra-app .engagement-reward-screen__content { align-items: stretch; gap: 0; padding: 24px 22px calc(24px + env(safe-area-inset-bottom, 0px)); text-align: left; }
+.noctra-app .engagement-reward-screen__content h1 { order: 1; width: 100%; margin: 0 0 12px; font-size: clamp(42px, 11vw, 72px); line-height: .88; }
+.noctra-app .engagement-reward-screen__eyebrow { order: 2; align-self: flex-start; margin: 0 0 16px; padding: 8px 10px; font-size: 12px; line-height: 1.2; }
+.noctra-app .engagement-reward-screen__badge { display: none; }
+.noctra-app .engagement-reward-screen__pass { order: 3; min-height: 164px; margin: 0 0 16px; padding: 19px 18px; }
+.noctra-app .engagement-reward-screen__pass > div { font-size: 11px; line-height: 1.4; letter-spacing: .035em; }
+.noctra-app .engagement-reward-screen__pass > strong { max-width: 90%; margin: 12px 0 8px; font-size: clamp(24px, 7vw, 36px); line-height: .95; }
+.noctra-app .engagement-reward-screen__pass > span { max-width: 82%; font-size: 12px; line-height: 1.35; letter-spacing: .02em; }
+.noctra-app .engagement-reward-screen__description { order: 4; max-width: 42ch; margin: 0 0 17px; font-size: 14px; line-height: 1.5; }
+.noctra-app .engagement-reward-screen__primary,
+.noctra-app .engagement-reward-screen__secondary { order: 5; min-height: 50px; font-size: 14px; }
+.noctra-app .engagement-reward-screen__disclaimer { order: 6; margin-top: 12px; color: var(--noctra-color-ink); font-size: 11px; line-height: 1.4; }
+.noctra-app .noctra-reward__content { align-items: stretch; padding: 24px 22px calc(24px + env(safe-area-inset-bottom, 0px)); text-align: left; }
+.noctra-app .noctra-reward__content h1 { order: 1; font-size: clamp(44px, 11vw, 72px); line-height: .88; }
+.noctra-app .noctra-reward__content > .noctra-eyebrow { order: 2; justify-content: flex-start; margin: 8px 0 12px; font-size: 12px; }
+.noctra-app .noctra-reward__badge { display: none; }
+.noctra-app .noctra-reward__pass { order: 3; min-height: 146px; margin-bottom: 16px; padding: 18px; }
+.noctra-app .noctra-reward__pass-top { font-size: 11px; line-height: 1.35; letter-spacing: .03em; }
+.noctra-app .noctra-reward__pass strong { font-size: 23px; }
+.noctra-app .noctra-reward__pass > span { max-width: 80%; font-size: 12px; line-height: 1.35; letter-spacing: .02em; }
+.noctra-app .noctra-reward__content > p:not(.noctra-eyebrow) { order: 4; margin: 0 0 16px; font-size: 14px; line-height: 1.5; }
+.noctra-app .noctra-reward__content .noctra-primary-action,
+.noctra-app .noctra-reward__content .noctra-secondary-action { order: 5; min-height: 50px; font-size: 14px; }
+.noctra-app .noctra-reward__disclaimer { order: 6; color: var(--noctra-color-ink); font-size: 11px; line-height: 1.4; }
+.noctra-app .noctra-reward-entry > p,
+.noctra-app .noctra-reward-entry button span { font-size: 11px; line-height: 1.35; letter-spacing: .035em; }
+.noctra-app .noctra-reward-entry button { min-height: 52px; }
+
+/* Photo Studio: the preview is a contained 9:16 box; controls stay in document flow. */
+.noctra-app .studio-screen.noctra-studio {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: "header" "preview" "panel";
+  grid-template-rows: auto auto auto;
+  align-content: start;
+  justify-items: stretch;
+  gap: 8px;
+  height: auto;
+  min-height: 100svh;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: 4px 16px calc(10px + env(safe-area-inset-bottom, 0px));
+  background: var(--noctra-color-paper) url('/noctra/experiences/noctra/textures/noctra-texture-paper-grain.svg') center / 540px auto;
+}
+.noctra-app .studio-screen.noctra-studio::after { display: none; }
+.noctra-app .studio-screen.noctra-studio > .floating-header {
+  position: relative;
+  z-index: 5;
+  grid-area: header;
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) 44px;
+  min-height: 54px;
+  padding: calc(5px + env(safe-area-inset-top, 0px)) 0 5px;
+  align-items: center;
+  gap: 10px;
+}
+.noctra-app .studio-screen.noctra-studio > .floating-header .icon-button { width: 44px; height: 44px; border: 2px solid var(--noctra-color-ink); background: var(--noctra-color-paper); }
+.noctra-app .studio-screen.noctra-studio > .floating-header > svg { justify-self: end; color: var(--noctra-color-pink); }
+.noctra-app .studio-edition-label { color: var(--noctra-color-ink); font: 800 12px/1.25 var(--noctra-font-meta); letter-spacing: .08em; text-align: center; }
+.noctra-app .studio-screen.noctra-studio .studio-media {
+  position: relative;
+  z-index: 1;
+  grid-area: preview;
+  top: auto;
+  right: auto;
+  bottom: auto;
+  left: auto;
+  justify-self: center;
+  width: auto;
+  max-width: 100%;
+  height: min(55svh, calc(100svh - 376px));
+  aspect-ratio: 9 / 16;
+  overflow: hidden;
+  border: 5px solid var(--noctra-color-paper);
+  background: var(--noctra-color-blue);
+  box-shadow: 4px 5px 0 var(--noctra-color-ink);
+  transform: none;
+}
+.noctra-app .studio-screen.noctra-studio .studio-media .studio-fallback-image,
+.noctra-app .studio-screen.noctra-studio .studio-media .studio-camera,
+.noctra-app .studio-screen.noctra-studio .studio-media .studio-composite-canvas { object-fit: cover; object-position: center 36%; }
+.noctra-app .studio-screen.noctra-studio .studio-media::after { position: absolute; z-index: 3; inset: 0; background: url('/noctra/experiences/noctra/frames/noctra-frame-night-03-9x16.svg') center / 100% 100% no-repeat; content: ''; pointer-events: none; }
+.noctra-app .studio-screen.noctra-studio .studio-media .noctra-live-effects { position: absolute; z-index: 2; inset: 0; overflow: hidden; pointer-events: none; }
+.noctra-app .studio-screen.noctra-studio .studio-media .noctra-preview-stamp { top: auto; right: 10px; bottom: 35%; left: 10px; width: max-content; max-width: calc(100% - 20px); padding: 7px 9px; border: 2px solid var(--noctra-color-ink); background: var(--noctra-color-lime); color: var(--noctra-color-ink); text-shadow: none; transform: rotate(-2deg); }
+.noctra-app .studio-screen.noctra-studio .studio-media .noctra-preview-stamp small,
+.noctra-app .studio-screen.noctra-studio .studio-media .noctra-preview-stamp span { color: var(--noctra-color-ink); font-size: 11px; line-height: 1.25; letter-spacing: .035em; }
+.noctra-app .studio-screen.noctra-studio .studio-media .noctra-preview-stamp strong { color: var(--noctra-color-ink); font: 900 14px/1.2 var(--noctra-font-heading); }
+.noctra-app .studio-screen.noctra-studio .studio-media .studio-copy { position: absolute; z-index: 4; top: auto; right: 13px; bottom: 16%; left: 13px; margin: 0; padding: 6px 8px; border: 1.5px solid var(--noctra-color-ink); background: var(--noctra-color-paper); text-align: left; }
+.noctra-app .studio-screen.noctra-studio .studio-media .studio-copy h2 { margin: 0 0 3px; color: var(--noctra-color-ink); font: 900 16px/1.1 var(--noctra-font-heading); }
+.noctra-app .studio-screen.noctra-studio .studio-media .studio-copy p { margin: 0; color: var(--noctra-color-ink); font-size: 12px; line-height: 1.3; }
+.noctra-app .studio-screen.noctra-studio .studio-media .studio-overlay { z-index: 4; top: 18%; right: 12px; color: var(--noctra-color-paper); font: 900 24px/.9 var(--noctra-font-display); text-shadow: 2px 2px 0 var(--noctra-color-ink); }
+.noctra-app .studio-screen.noctra-studio > .photo-shade.medium { display: none; }
+.noctra-app .studio-screen.noctra-studio .studio-panel { grid-area: panel; display: grid; grid-template-columns: minmax(0, 1fr); grid-template-areas: "notice" "options" "capture" "tabs" "actions"; gap: 8px; min-width: 0; }
+.noctra-app .studio-screen.noctra-studio .studio-panel .studio-feedback { position: relative; z-index: 1; grid-area: notice; top: auto; right: auto; bottom: auto; left: auto; min-height: 34px; margin: 0; padding: 7px 9px; border: 2px solid var(--noctra-color-ink); background: var(--noctra-color-lime); box-shadow: 2px 3px 0 var(--noctra-color-ink); color: var(--noctra-color-ink); font-size: 14px; line-height: 1.3; text-align: center; text-shadow: none; }
+.noctra-app .studio-screen.noctra-studio .studio-options { position: relative; inset: auto; display: flex; grid-area: options; width: 100%; min-width: 0; min-height: 78px; gap: 8px; align-items: stretch; justify-content: center; overflow-x: auto; overflow-y: hidden; padding: 4px 3px 7px; scrollbar-width: none; }
+.noctra-app .studio-screen.noctra-studio .studio-options::-webkit-scrollbar { display: none; }
+.noctra-app .studio-screen.noctra-studio .studio-options button { display: flex; min-width: 94px; min-height: 66px; max-width: 132px; flex: 1 0 94px; flex-direction: column; gap: 4px; align-items: center; justify-content: center; padding: 4px 5px; border: 1.5px solid var(--noctra-color-ink); background: var(--noctra-color-paper); color: var(--noctra-color-ink); font: 800 14px/1.2 var(--noctra-font-meta); }
+.noctra-app .studio-screen.noctra-studio .studio-options img { width: min(100%, 74px); height: 43px; border: 1.5px solid var(--noctra-color-ink); border-radius: 0; background: var(--noctra-color-paper); object-fit: cover; opacity: 1; box-shadow: 1px 2px 0 var(--noctra-color-ink); }
+.noctra-app .studio-screen.noctra-studio .studio-options button:nth-child(1) img { content: url('/noctra/experiences/noctra/frames/noctra-frame-noctra-9x16.svg'); }
+.noctra-app .studio-screen.noctra-studio .studio-options button:nth-child(2) img { content: url('/noctra/experiences/noctra/frames/noctra-frame-main-stage-9x16.svg'); }
+.noctra-app .studio-screen.noctra-studio .studio-options button:nth-child(3) img { content: url('/noctra/experiences/noctra/frames/noctra-frame-secret-found-9x16.svg'); }
+.noctra-app .studio-screen.noctra-studio .studio-options button:nth-child(4) img { content: url('/noctra/experiences/noctra/passes/noctra-pass-nova-pass.svg'); }
+.noctra-app .studio-screen.noctra-studio .studio-options button.active { background: var(--noctra-color-lime); box-shadow: 2px 3px 0 var(--noctra-color-ink); }
+.noctra-app .studio-screen.noctra-studio .studio-options button.active img { border: 3px solid var(--noctra-color-pink); opacity: 1; transform: none; }
+.noctra-app .studio-screen.noctra-studio .shutter { position: relative; inset: auto; grid-area: capture; justify-self: center; width: 64px; height: 64px; min-width: 64px; min-height: 64px; border: 3px solid var(--noctra-color-ink); background: var(--noctra-color-paper); box-shadow: inset 0 0 0 7px var(--noctra-color-lime), 0 3px 0 var(--noctra-color-ink); }
+.noctra-app .studio-screen.noctra-studio .studio-tabs { position: relative; top: auto; right: auto; bottom: auto; left: auto; transform: none; width: 100%; grid-area: tabs; display: flex; min-height: 44px; gap: 8px; align-items: stretch; justify-content: center; }
+.noctra-app .studio-screen.noctra-studio .studio-tabs button { min-width: 72px; min-height: 44px; padding: 8px 12px; border: 1.5px solid var(--noctra-color-ink); background: var(--noctra-color-paper); color: var(--noctra-color-ink); font: 800 14px/1 var(--noctra-font-meta); }
+.noctra-app .studio-screen.noctra-studio .studio-tabs button.active { background: var(--noctra-color-pink); color: var(--noctra-color-ink); }
+.noctra-app .studio-screen.noctra-studio .studio-actions { display: flex; grid-area: actions; gap: 12px; justify-content: space-between; }
+.noctra-app .studio-screen.noctra-studio .studio-actions button { display: flex; min-width: 0; min-height: 48px; flex: 1 1 0; gap: 7px; align-items: center; justify-content: center; border: 2px solid var(--noctra-color-ink); background: var(--noctra-color-paper); color: var(--noctra-color-ink); font: 800 14px/1.2 var(--noctra-font-meta); }
+.noctra-app .studio-screen.noctra-studio .studio-actions button:last-child { background: var(--noctra-color-lime); box-shadow: 2px 3px 0 var(--noctra-color-ink); }
+.noctra-app .studio-screen.noctra-studio .studio-actions button:disabled { opacity: .64; }
+
+@media (min-width: 1024px) {
+  .noctra-app:has(.studio-screen.noctra-studio) { padding: 0; }
+  .noctra-app:has(.studio-screen.noctra-studio) .motion-stage { width: 100%; max-width: 1280px; height: 100svh; min-height: 100svh; flex: 1 1 100%; }
+  .noctra-app:has(.studio-screen.noctra-studio) .motion-layer.incoming { height: 100svh; min-height: 100svh; }
+  .noctra-app:has(.studio-screen.noctra-studio) { height: 100svh; min-height: 100svh; overflow: hidden; }
+  .noctra-app .studio-screen.noctra-studio {
+    grid-template-columns: minmax(0, 1fr) minmax(220px, min(27vw, 340px)) minmax(380px, 460px) minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+    grid-template-areas: "header header header header" ". preview panel .";
+    gap: 12px 3vw;
+    align-content: stretch;
+    align-items: center;
+    padding: 8px 24px 14px;
+    width: 100%;
+    max-height: none;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+  .noctra-app .studio-screen.noctra-studio .studio-media { height: min(57svh, calc(100svh - 92px)); }
+  .noctra-app .studio-screen.noctra-studio .studio-panel { align-self: center; gap: 14px; padding: 18px 0 18px 22px; border-left: 2px solid var(--noctra-color-ink); }
+  .noctra-app .studio-screen.noctra-studio .studio-options { gap: 10px; }
+  .noctra-app .studio-screen.noctra-studio .studio-options button { min-width: 0; flex-basis: 0; }
+}
+
+@media (min-width: 600px) and (max-width: 1023px) {
+  .noctra-app:has(.studio-screen.noctra-studio) { padding: 0; }
+  .noctra-app:has(.studio-screen.noctra-studio) .motion-stage { width: 100%; height: 100svh; min-height: 100svh; flex: 1 1 100%; }
+  .noctra-app:has(.studio-screen.noctra-studio) .motion-layer.incoming { height: 100svh; min-height: 100svh; }
+  .noctra-app:has(.studio-screen.noctra-studio) { height: 100svh; min-height: 100svh; overflow: hidden; }
+  .noctra-app .studio-screen.noctra-studio { width: 100%; height: auto; min-height: 100svh; max-height: none; border: 0; border-radius: 0; box-shadow: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .noctra-app .studio-screen.noctra-studio .studio-media,
+  .noctra-app .studio-screen.noctra-studio .studio-media .noctra-live-effects i,
+  .noctra-app .studio-screen.noctra-studio .studio-media .noctra-live-effects span { animation: none; transition: none; }
+}
