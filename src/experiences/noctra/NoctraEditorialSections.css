@@ -246,3 +246,58 @@
   .noctra-app .noctra-lineup-list li.is-headliner { transform: none; }
   .noctra-app .noctra-moments-progress__track i { transition: none; }
 }
+
+/* Mobile reading sizes for NOCTRA editorial sections. */
+.noctra-app .noctra-editorial__header > button,
+.noctra-app .noctra-editorial__primary,
+.noctra-app .noctra-date-poster__action,
+.noctra-app .noctra-nova__secondary { font-size: 14px; line-height: 1.3; }
+.noctra-app .noctra-editorial__header-label,
+.noctra-app .noctra-editorial__eyebrow,
+.noctra-app .noctra-editorial__note,
+.noctra-app .noctra-date-poster__index,
+.noctra-app .noctra-date-poster p,
+.noctra-app .noctra-date-poster__state,
+.noctra-app .noctra-lineup-poster__tape,
+.noctra-app .noctra-lineup-poster > span,
+.noctra-app .noctra-lineup-list-heading,
+.noctra-app .noctra-lineup-list time,
+.noctra-app .noctra-lineup-list__role,
+.noctra-app .noctra-lineup-list__stage,
+.noctra-app .noctra-moments-progress > div:first-child,
+.noctra-app .noctra-moments-progress small,
+.noctra-app .noctra-catalog-moment__art span,
+.noctra-app .noctra-catalog-moment__kind,
+.noctra-app .noctra-catalog-moment__status,
+.noctra-app .noctra-catalog-moment__copy > small,
+.noctra-app .noctra-edition-hero__active,
+.noctra-app .noctra-edition-hero > small,
+.noctra-app .noctra-edition-stats span,
+.noctra-app .noctra-edition-archive > span,
+.noctra-app .noctra-edition-archive b,
+.noctra-app .noctra-edition-archive b i,
+.noctra-app .noctra-info-steps article > span,
+.noctra-app .noctra-info-disclosure strong,
+.noctra-app .noctra-nova__brand span,
+.noctra-app .noctra-nova__hero-copy > span,
+.noctra-app .noctra-nova__status strong,
+.noctra-app .noctra-nova__status span,
+.noctra-app .noctra-nova__steps span,
+.noctra-app .noctra-nova__disclaimer,
+.noctra-app .noctra-nova-frame-label { font-size: 11px; line-height: 1.35; letter-spacing: .035em; }
+.noctra-app .noctra-date-poster h2,
+.noctra-app .noctra-catalog-moment__copy h2 { font-size: max(16px, 1em); line-height: 1.05; }
+.noctra-app .noctra-lineup-list p,
+.noctra-app .noctra-catalog-moment__copy p,
+.noctra-app .noctra-edition-copy,
+.noctra-app .noctra-info-steps p,
+.noctra-app .noctra-info-disclosure p,
+.noctra-app .noctra-nova__hero-copy p,
+.noctra-app .noctra-nova__disclaimer { font-size: 14px; line-height: 1.4; }
+.noctra-app .noctra-date-poster__state { flex-wrap: wrap; }
+.noctra-app .noctra-catalog-moment { min-height: 132px; grid-template-columns: 88px minmax(0, 1fr); }
+.noctra-app .noctra-catalog-moment__copy > div { min-height: 24px; gap: 6px; }
+.noctra-app .noctra-catalog-moment__status { white-space: normal; }
+.noctra-app .noctra-info-steps article { min-height: 170px; }
+.noctra-app .noctra-nova__steps span { min-height: 44px; }
+.noctra-app .noctra-nova__hero-copy h1 { line-height: .9; }

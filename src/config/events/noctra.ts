@@ -3,7 +3,15 @@ import { createExperienceRuntime } from '../experienceRuntime'
 import { assetUrl } from '../../utils/assets'
 import { laFabrica } from './laFabrica'
 
-const art = (name: string) => assetUrl(`experiences/noctra/art/${name}.webp`)
+const approvedPhotos: Record<string, string> = {
+  hero: 'photos/friends/noctra-photo-friends-01-portrait.webp',
+  entrance: 'photos/friends/noctra-photo-friends-01-portrait.webp',
+  'main-stage': 'photos/crowds/noctra-photo-crowd-01-portrait.webp',
+  'hidden-frequency': 'photos/backstage/noctra-photo-backstage-corridor-01-portrait.webp',
+  'nova-drop': 'photos/friends/noctra-photo-friends-01-portrait.webp',
+  'final-drop': 'photos/backstage/noctra-photo-backstage-corridor-01-portrait.webp',
+}
+const art = (name: string) => assetUrl(`experiences/noctra/${approvedPhotos[name] ?? approvedPhotos.hero}`)
 export const noctra: ExperienceConfig = {
   ...laFabrica,
   id: 'noctra',

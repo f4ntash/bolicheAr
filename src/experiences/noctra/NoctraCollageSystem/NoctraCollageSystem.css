@@ -1046,6 +1046,24 @@
   .noctra-app .noctra-moment-tile { transition: none; animation: none; }
 }
 
+/* Keep the reveal sized to the NOCTRA viewport instead of the legacy 844px frame. */
+.noctra-app .noctra-reveal { height: 100svh; min-height: 100svh; }
+.noctra-app .noctra-reveal__copy h1 { font-size: clamp(32px, 10vw, 48px); line-height: .9; }
+
+@media (max-height: 860px) {
+  .noctra-app .noctra-reveal__copy { top: 46%; }
+}
+
+@media (max-height: 760px) {
+  .noctra-app .noctra-reveal__copy { top: 28%; }
+}
+
+@media (min-width: 600px) {
+  .app-shell.noctra-app:has(.noctra-reveal) { padding-block: 0; }
+  .noctra-app .motion-stage:has(.noctra-reveal),
+  .noctra-app .motion-stage:has(.noctra-reveal) > .motion-layer:has(.noctra-reveal) { height: 100svh; min-height: 100svh; }
+}
+
 /* Focused UX corrections: keep NOCTRA's collage, make navigation and scanning readable. */
 .noctra-app .noctra-menu {
   display: flex;
@@ -1474,4 +1492,82 @@
   .noctra-app .studio-screen.noctra-studio .studio-media,
   .noctra-app .studio-screen.noctra-studio .studio-media .noctra-live-effects i,
   .noctra-app .studio-screen.noctra-studio .studio-media .noctra-live-effects span { animation: none; transition: none; }
+}
+
+/* Production audit fixes: these rules intentionally stay inside the NOCTRA wrapper. */
+.noctra-app .noctra-reveal__copy { width: auto; box-sizing: border-box; }
+.noctra-app .noctra-reveal__reward,
+.noctra-app .noctra-reveal__reward span { color: var(--noctra-color-ink); }
+.noctra-app .noctra-reveal__copy h1 { max-width: 100%; overflow-wrap: anywhere; }
+.noctra-app .share-card { width: 100%; min-width: 0; box-sizing: border-box; grid-template-columns: minmax(0, 1fr) minmax(0, 82px); gap: 12px; padding-right: 16px; padding-left: 16px; }
+.noctra-app .share-actions { min-width: 0; }
+.noctra-app .share-actions button { width: 100%; min-width: 0; box-sizing: border-box; padding: 6px 4px; font-size: 14px; line-height: 1.25; overflow-wrap: anywhere; }
+.noctra-app .secret-strip.noctra-secret-ready { border-color: var(--noctra-color-ink); background-color: var(--noctra-color-lime); color: var(--noctra-color-ink); cursor: pointer; opacity: 1; }
+.noctra-app .secret-strip.noctra-secret-ready .secret-blur { opacity: .16; }
+.noctra-app .secret-strip.noctra-secret-ready .secret-strip__copy strong,
+.noctra-app .secret-strip.noctra-secret-ready .secret-strip__copy span { color: var(--noctra-color-ink); }
+.noctra-app .secret-strip.noctra-secret-ready:focus-visible { outline: 3px solid var(--noctra-color-blue); outline-offset: 3px; }
+.noctra-app .noctra-discover.scan-camera-unavailable .noctra-discover__scan-line { display: none; animation: none; }
+
+.noctra-app p { font-size: 14px !important; line-height: 1.45 !important; }
+.noctra-app p.eyebrow,
+.noctra-app .noctra-reveal__progress,
+.noctra-app .noctra-memory__footer > p,
+.noctra-app .noctra-home-loop p { font-size: 11px !important; line-height: 1.35 !important; }
+.noctra-app small,
+.noctra-app time,
+.noctra-app .corsteno-credit { font-size: 11px !important; line-height: 1.35 !important; }
+.noctra-app .noctra-memory__progress,
+.noctra-app .noctra-memory__edition,
+.noctra-app .noctra-memory__record > div span,
+.noctra-app .noctra-memory__record > small,
+.noctra-app .noctra-memory__signal span,
+.noctra-app .noctra-memory__signal strong,
+.noctra-app .noctra-memory__reward > span,
+.noctra-app .noctra-memory__footer > p,
+.noctra-app .noctra-home-loop,
+.noctra-app .noctra-menu__intro > span,
+.noctra-app .noctra-menu__footer > span,
+.noctra-app .noctra-menu__photo figcaption > strong { font-size: 11px; line-height: 1.35; letter-spacing: .035em; }
+.noctra-app .noctra-memory__progress-line i { display: block; max-width: 100%; height: 100%; transition: width 220ms ease; }
+.noctra-app .noctra-menu__group > h2,
+.noctra-app .noctra-menu__header > div > span,
+.noctra-app .noctra-menu__photo figcaption > span,
+.noctra-app .noctra-discover__eyebrow,
+.noctra-app .noctra-discover__tap-label,
+.noctra-app .noctra-discover__frame-label,
+.noctra-app .noctra-discover__status .scan-status > span,
+.noctra-app .noctra-reveal__header > span,
+.noctra-app .noctra-reveal__eyebrow,
+.noctra-app .noctra-reveal__edition,
+.noctra-app .noctra-reveal__progress,
+.noctra-app .noctra-reveal__reward span,
+.noctra-app .noctra-night-recap__header > span,
+.noctra-app .noctra-night-recap__eyebrow,
+.noctra-app .noctra-night-recap__edition,
+.noctra-app .noctra-night-recap__stats span,
+.noctra-app .noctra-night-recap__collection > header,
+.noctra-app .noctra-night-recap__reward span,
+.noctra-app .noctra-night-recap__reward small,
+.noctra-app .noctra-crew-moment span,
+.noctra-app .noctra-sponsor__availability,
+.noctra-app .noctra-sponsor__brand span,
+.noctra-app .noctra-sponsor__reveal > small,
+.noctra-app .noctra-sponsor__drop-label,
+.noctra-app .noctra-sponsor__location { font-size: 11px; line-height: 1.35; letter-spacing: .035em; }
+.noctra-app .noctra-memory__progress-line i { height: 100%; }
+.noctra-app .bottom-nav button,
+.noctra-app .cream-button,
+.noctra-app .outline-button,
+.noctra-app .engagement-card__action,
+.noctra-app .menu-screen.noctra-menu .noctra-menu__group-links button,
+.noctra-app .menu-screen.noctra-menu .noctra-menu__reset,
+.noctra-app .noctra-reveal__actions .cream-button,
+.noctra-app .noctra-reveal__continue,
+.noctra-app .noctra-sponsor__button,
+.noctra-app .noctra-sponsor__continue { font-size: 14px; line-height: 1.35; }
+.noctra-app .noctra-night-recap__grid .noctra-moment-tile__copy > strong { font-size: 16px; line-height: 1.2; }
+
+@media (max-width: 420px) {
+  .noctra-app .share-card { grid-template-columns: minmax(0, 1fr) minmax(0, 78px); gap: 10px; padding-right: 14px; padding-left: 14px; }
 }

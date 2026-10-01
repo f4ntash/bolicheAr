@@ -38,7 +38,7 @@ export type NoctraMomentRecord = {
 export type NoctraMomentView = Omit<NoctraMomentRecord, 'photo'> & { photoUrl?: string }
 
 export const NOCTRA_EDITIONS: Record<string, NoctraEdition> = {
-  'night-03': { id: 'night-03', label: 'NIGHT 03', shortName: 'NOCTRA 03', eventDate: '2026-09-28', dateLabel: '28 SEP 2026' },
+  'night-03': { id: 'night-03', label: 'NIGHT 03', shortName: 'NOCTRA 03', eventDate: '2026-09-29', dateLabel: '29 SEP 2026' },
   'night-02': { id: 'night-02', label: 'NIGHT 02', shortName: 'NOCTRA 02', eventDate: '2026-08-22', dateLabel: '22 AGO 2026' },
   'sunset-special': { id: 'sunset-special', label: 'SUNSET EDITION', shortName: 'NOCTRA · SPECIAL', eventDate: '2026-09-28', dateLabel: '28 SEP 2026' },
 }

@@ -127,7 +127,7 @@ export function FinalRewardScreen({
       <div className="engagement-reward-screen__pass">
         <div><span>{experience.config.name} · {experience.config.location}</span><span>{locked ? `${progressCount} / ${definition.goal.requiredUnlocks}` : state === 'ready' ? reward.readyLabel : 'ACCESO DIGITAL'}</span></div>
         <strong>{reward.title}</strong>
-        <span>{definition.goal.description}</span>
+        <span>{experience.config.id === 'noctra' ? description : definition.goal.description}</span>
         <i aria-hidden="true" />
       </div>
       {locked ? <button type="button" className="engagement-reward-screen__secondary" onClick={onBack}><ArrowLeft size={15} /> Volver al recorrido</button>
