@@ -422,6 +422,7 @@ function App({ experience }: { experience: ExperienceRuntime }) {
   const go = (next: View) => {
     if (next === view) return
     if (transitionTimer.current) window.clearTimeout(transitionTimer.current)
+    if (isNoctra) window.scrollTo(0, 0)
     setOutgoingView(view)
     setView(next)
     transitionTimer.current = window.setTimeout(() => setOutgoingView(null), 420)
