@@ -1,6 +1,7 @@
 import { ArrowLeft, ArrowRight, CalendarDays, Check, Compass, LockKeyhole, Music2, Sparkles, Ticket, UnlockKeyhole } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { assetUrl } from '../../utils/assets'
+import './NoctraEditorialSections.css'
 
 type RewardState = 'locked' | 'ready' | 'unlocked'
 

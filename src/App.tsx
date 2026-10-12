@@ -6,8 +6,8 @@ import type { ExperienceRuntime, Station } from './types'
 import { EngagementCard, EngagementContext, EngagementUnlockFeedback, FinalRewardScreen, useEngagementView, type EngagementUnlockFeedbackState, type EngagementViewModel } from './engagement/EngagementUI'
 import NoctraSponsorActivation from './experiences/noctra/NoctraSponsorActivation/NoctraSponsorActivation'
 import { NoctraEditionSection, NoctraExperienceInfo, NoctraLineup, NoctraMomentsCatalog, NoctraUpcomingDates } from './experiences/noctra/NoctraEditorialSections'
-import './experiences/noctra/noctraDesignTokens.css'
-import './experiences/noctra/NoctraVisualSystem.css'
+import './experiences/noctra/NoctraTheme/NoctraTheme.css'
+import './experiences/noctra/NoctraCollageSystem/NoctraCollageSystem.css'
 const VirtualBackgroundTest = lazy(() => import('./VirtualBackgroundTest'))
 const NoctraExperienceUI = lazy(() => import('./experiences/noctra/NoctraMomentsExperience'))
 import { parseStationQr } from './utils/stationQr'
@@ -542,6 +542,7 @@ function Home({ editionId, progressCount, requiredCount, rewardState, onStart, o
   const content = experienceConfig.content.home
   const isNoctra = experienceConfig.id === 'noctra'
   const editionDate = editionId === 'night-02' ? '22.08.26' : editionId === 'sunset-special' ? '28.09.26' : '29.09.26'
+  const rewardStatus = rewardState === 'locked' ? 'LOCKED' : rewardState === 'ready' ? 'READY TO OPEN' : 'UNLOCKED'
   const rewardProgressCount = Math.min(progressCount, requiredCount)
   const progressLabel = `${String(rewardProgressCount).padStart(2, '0')} / ${String(requiredCount).padStart(2, '0')}`
   const hasDemoDisclosure = Boolean(content.demoDisclosureTitle && content.demoDisclosureBody)
@@ -616,6 +617,7 @@ function Home({ editionId, progressCount, requiredCount, rewardState, onStart, o
         <div className="noctra-memory__scene">
         <img src={assetUrl('experiences/noctra/photos/friends/noctra-photo-friends-01-portrait.webp')} alt="Dos amistades guardan un momento entre luces cálidas y violetas." fetchPriority="high" />
         </div>
+        <div className="noctra-memory__foreground" aria-hidden="true"><i className="noctra-memory__sweep" /><i className="noctra-memory__glint" /></div>
         <button
           type="button"
           className="noctra-memory__anomaly"
@@ -625,7 +627,30 @@ function Home({ editionId, progressCount, requiredCount, rewardState, onStart, o
           onPointerLeave={(event) => { if (event.pointerType === 'mouse') setMemorySignalHovered(false) }}
           onClick={() => setMemorySignalPinned((active) => !active)}
         >
-          <span>SIGNAL 01</span><strong>{memorySignalActive ? 'ACTIVA' : 'SINTONIZAR'}</strong>
+          <svg viewBox="0 0 520 760" aria-hidden="true" focusable="false">
+            <defs>
+              <linearGradient id="noctra-orbit-chrome" x1=".08" y1=".9" x2=".92" y2=".08">
+                <stop offset="0" stopColor="#ed735b" stopOpacity=".36" />
+                <stop offset=".28" stopColor="#ffc39f" stopOpacity=".94" />
+                <stop offset=".52" stopColor="#fff2dc" stopOpacity=".78" />
+                <stop offset=".76" stopColor="#aaa7e8" stopOpacity=".88" />
+                <stop offset="1" stopColor="#ed735b" stopOpacity=".52" />
+              </linearGradient>
+              <filter id="noctra-orbit-halo" x="-70%" y="-30%" width="240%" height="160%">
+                <feGaussianBlur stdDeviation="5" result="softGlow" />
+                <feMerge><feMergeNode in="softGlow" /><feMergeNode in="SourceGraphic" /></feMerge>
+              </filter>
+            </defs>
+            <ellipse className="noctra-memory__orbit-shadow" cx="260" cy="380" rx="218" ry="351" />
+            <path className="noctra-memory__orbit-glass" d="M249 30C389 19 479 124 485 294C487 337 484 360 478 394M471 438C449 560 389 667 309 722" />
+            <path className="noctra-memory__orbit-glass" d="M260 742C126 749 43 637 36 481C28 321 53 153 144 69C178 38 215 27 247 30" />
+            <path className="noctra-memory__orbit-edge" d="M249 30C389 19 479 124 485 294C487 337 484 360 478 394M471 438C449 560 389 667 309 722" />
+            <path className="noctra-memory__orbit-edge" d="M260 742C126 749 43 637 36 481C28 321 53 153 144 69C178 38 215 27 247 30" />
+            <path className="noctra-memory__orbit-trace" d="M256 50C137 55 67 181 65 344M451 470C424 584 365 660 312 690M96 570C114 648 168 695 226 704" />
+            <path className="noctra-memory__orbit-mark" d="M230 19h60M260 -11v60M472 399h42M493 378v42M235 738h51M260 712v52" />
+            <circle className="noctra-memory__orbit-node" cx="479" cy="415" r="7" />
+            <circle className="noctra-memory__orbit-node-core" cx="479" cy="415" r="2.5" />
+          </svg>
         </button>
         <header className="noctra-memory__header">
           <img src={assetUrl('experiences/noctra/noctra-wordmark.svg')} alt="NOCTRA" />
@@ -640,6 +665,10 @@ function Home({ editionId, progressCount, requiredCount, rewardState, onStart, o
           <span className="noctra-memory__record-mark" aria-hidden="true" />
           <div><strong>MAIN STAGE</strong><span>{editionDate} <i /> {nightLabel}</span></div>
           <small>MOMENTO PERSONAL</small>
+        </div>
+        <div className="noctra-memory__signal"><span>SIGNAL_01</span><strong>{memorySignalActive ? 'TUNED TO YOU' : 'UNKNOWN'}</strong></div>
+        <div className="noctra-memory__reward" aria-label={`Backstage Access, ${rewardProgressCount} de ${requiredCount}, ${rewardStatus}`}>
+          <span>RECOMPENSA · {progressLabel}</span><strong>BACKSTAGE ACCESS</strong><span className="noctra-memory__locked"><i /> {rewardStatus}</span>
         </div>
         <div className="noctra-memory__footer">
           <div className="noctra-memory__progress" aria-label={`Progreso de desbloqueo: ${rewardProgressCount} de ${requiredCount} momentos para Backstage Access, ${rewardState === 'locked' ? 'bloqueado' : rewardState === 'ready' ? 'listo para abrir' : 'desbloqueado'}`}><span>{progressLabel} · BACKSTAGE</span><span className="noctra-memory__progress-line" role="progressbar" aria-valuemin={0} aria-valuemax={requiredCount} aria-valuenow={rewardProgressCount} aria-label={`${rewardProgressCount} de ${requiredCount}`}><i style={{ width: `${Math.min(100, rewardProgressCount / requiredCount * 100)}%` }} /></span></div>
